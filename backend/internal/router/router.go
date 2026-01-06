@@ -6,7 +6,7 @@ import (
 )
 
 // New initialises and returns new HTTP router
-func New() *chi.Mux {
+func NewRouter() *chi.Mux {
 	// Create the router instance with r var name
 	r := chi.NewRouter()
 

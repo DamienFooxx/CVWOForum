@@ -8,7 +8,8 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port        string
+	DatabaseURL string
 }
 
 // Load the env vars.
@@ -22,7 +23,14 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("PORT environment variable not set")
 	}
 
+	// Load and check if DatabaseURL exists
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		return nil, fmt.Errorf("DATABASE_URL environment variable not set")
+	}
+
 	return &Config{
-		Port: port,
+		Port:        port,
+		DatabaseURL: databaseURL,
 	}, nil
 }
