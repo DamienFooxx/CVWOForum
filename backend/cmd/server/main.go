@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/DamienFooxx/CVWOForum/internal/config"
-	"github.com/DamienFooxx/CVWOForum/internal/db"
+	"github.com/DamienFooxx/CVWOForum/internal/database"
+	"github.com/DamienFooxx/CVWOForum/internal/dbConnection"
 	"github.com/DamienFooxx/CVWOForum/internal/router"
 )
 
@@ -16,17 +17,19 @@ func main() {
 		panic(err)
 	}
 
-	// Initialise database using internal/db/db.go
-	database, err := db.NewDB(cfg.DatabaseURL)
+	// Initialise database using internal/dbConnection/dbConnection.go
+	databaseConnection, err := dbConnection.NewDB(cfg.DatabaseURL)
 	if err != nil {
 		panic(err)
 	}
-	// Close db connection once main() stops
-	defer database.Close()
+	// Close dbConnection connection once main() stops
+	defer databaseConnection.Close()
 	fmt.Println("Connected to database at", cfg.DatabaseURL)
 
+	queries := database.New(databaseConnection)
+
 	// Initialise chi router using internal/router/router.go New() function
-	r := router.NewRouter()
+	r := router.NewRouter(queries)
 	addr := ":" + cfg.Port
 	fmt.Println("listening on", addr)
 
