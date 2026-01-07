@@ -11,6 +11,6 @@ import (
 type User struct {
 	UserID    int64
 	Username  string
-	Bio       pgtype.Text
+	Bio       string
 	CreatedAt pgtype.Timestamptz
 }

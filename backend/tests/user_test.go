@@ -63,12 +63,13 @@ func TestCreateUser(t *testing.T) {
 		// Username because sqlc converts username to Username for it to be visible to Go
 		assert.Equal(t, "user1", response["Username"])
 
+		// Print out response for debugging
+		// t.Logf("Bio Type: %T, Value: %+v", response["Bio"], response["Bio"])
+
 		// Verify Bio
-		bioMap, ok := response["Bio"].(map[string]interface{})
-		assert.True(t, ok, "Bio should be a map[string]interface{}")
-		assert.Equal(t, "test1", bioMap["String"])
-		assert.Equal(t, true, bioMap["Valid"])
+		assert.Equal(t, "test1", response["Bio"])
 	})
+
 	// Test Case 2: Test empty bio
 	t.Run("Create User with Empty Bio", func(t *testing.T) {
 		cleanDB()
@@ -96,10 +97,9 @@ func TestCreateUser(t *testing.T) {
 
 		assert.Equal(t, "user_empty", response["Username"])
 
+		// Output for debugging
+		// t.Logf("Raw JSON Body: %s", w.Body.String())
 		// Verify Empty Bio
-		bioMap, ok := response["Bio"].(map[string]interface{})
-		assert.True(t, ok)
-		assert.Equal(t, "", bioMap["String"])
-		assert.Equal(t, true, bioMap["Valid"]) // It is Valid (not NULL), just empty string
+		assert.Equal(t, "", response["Bio"])
 	})
 }

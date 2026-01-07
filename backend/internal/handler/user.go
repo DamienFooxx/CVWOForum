@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/DamienFooxx/CVWOForum/internal/database"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // UserHandler holds the database connection
@@ -35,18 +34,10 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create user in database
-	// Convert Go string to typesafe for psql
-	// Treat empty Bio as "" for simplicity on the frontend
-	bioText := pgtype.Text{
-		String: req.Bio,
-		Valid:  true,
-	}
-
 	// Write to database
 	user, err := h.q.CreateUser(r.Context(), database.CreateUserParams{
 		Username: req.Username,
-		Bio:      bioText,
+		Bio:      req.Bio, // postgres defaults to '' if not provided
 	})
 	if err != nil {
 		http.Error(w, "Failed to create user: "+err.Error(), http.StatusInternalServerError)
