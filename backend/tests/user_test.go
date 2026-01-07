@@ -29,34 +29,77 @@ func TestCreateUser(t *testing.T) {
 	}
 	defer dbConn.Close()
 
-	// Clean database for tests
-	_, err = dbConn.Exec(context.Background(), "DELETE FROM users;")
-	assert.NoError(t, err)
-
+	// Clean database function for tests
+	cleanDB := func() {
+		_, err = dbConn.Exec(context.Background(), "DELETE FROM users;")
+		assert.NoError(t, err)
+	}
 	// Setup router
 	queries := database.New(dbConn)
 	r := router.NewRouter(queries)
 
-	// Create user
-	payload := []byte(`{
+	// Test Case 1: User creation with bio
+	t.Run("Create User with Bio", func(t *testing.T) {
+		// Create user
+		payload := []byte(`{
 		"username": "user1",
 		"bio": "test1"
 		}`)
-	// Create request
-	req := httptest.NewRequest("POST", "/users", bytes.NewBuffer(payload))
-	req.Header.Set("Content-Type", "application/json")
+		// Create request
+		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+		req.Header.Set("Content-Type", "application/json")
 
-	// Send request
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+		// Send request
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
 
-	// Check if success
-	assert.Equal(t, http.StatusOK, w.Code)
+		// Check if success
+		assert.Equal(t, http.StatusOK, w.Code)
 
-	var response map[string]interface{}             // Hold the HTTP response temporarily
-	err = json.Unmarshal(w.Body.Bytes(), &response) // Convert to JSON
-	assert.NoError(t, err)
+		var response map[string]interface{}             // Hold the HTTP response temporarily
+		err = json.Unmarshal(w.Body.Bytes(), &response) // Convert to JSON
+		assert.NoError(t, err)
 
-	// Username because sqlc converts username to Username for it to be visible to Go
-	assert.Equal(t, "user1", response["Username"])
+		// Username because sqlc converts username to Username for it to be visible to Go
+		assert.Equal(t, "user1", response["Username"])
+
+		// Verify Bio
+		bioMap, ok := response["Bio"].(map[string]interface{})
+		assert.True(t, ok, "Bio should be a map[string]interface{}")
+		assert.Equal(t, "test1", bioMap["String"])
+		assert.Equal(t, true, bioMap["Valid"])
+	})
+	// Test Case 2: Test empty bio
+	t.Run("Create User with Empty Bio", func(t *testing.T) {
+		cleanDB()
+
+		// Create user
+		payload := []byte(`{
+			"username": "user_empty", 
+			"bio": ""
+		}`)
+
+		// Create request
+		req := httptest.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+		req.Header.Set("Content-Type", "application/json")
+
+		// Send request
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Convert to JSON
+		var response map[string]interface{}
+		err = json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "user_empty", response["Username"])
+
+		// Verify Empty Bio
+		bioMap, ok := response["Bio"].(map[string]interface{})
+		assert.True(t, ok)
+		assert.Equal(t, "", bioMap["String"])
+		assert.Equal(t, true, bioMap["Valid"]) // It is Valid (not NULL), just empty string
+	})
 }
