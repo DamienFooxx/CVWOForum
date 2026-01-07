@@ -7,8 +7,6 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -19,7 +17,7 @@ RETURNING user_id, username, bio, created_at
 
 type CreateUserParams struct {
 	Username string
-	Bio      pgtype.Text
+	Bio      string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

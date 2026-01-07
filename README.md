@@ -80,6 +80,9 @@ Admins are extended users who can:
 
 * Routing: **chi**
 * Database: **pgx + sqlc**
+  * pgx > in-built go sql: Built for psql, so it is faster and supports more advanced psql commands.
+  * pgxPool minimize the overhead of connection handshakes and authentication by having multiple open connections.
+  * pgx provides better type safety when working with sqlc.
 * Migrations: **goose**
 * Auth: **jwt / oauth2**
 * Validation: **go-playground**
