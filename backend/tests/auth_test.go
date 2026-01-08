@@ -8,31 +8,27 @@ import (
 	"os"
 	"testing"
 
-	"github.com/DamienFooxx/CVWOForum/internal/config"
 	"github.com/DamienFooxx/CVWOForum/internal/database"
-	"github.com/DamienFooxx/CVWOForum/internal/dbConnection"
 	"github.com/DamienFooxx/CVWOForum/internal/router"
 	"github.com/stretchr/testify/assert"
 )
 
 // Test login functions using JWT
 func TestLogin(t *testing.T) {
-	os.Setenv("JWT_SECRET", "secret")
+	err := os.Setenv("JWT_SECRET", "secret")
+	if err != nil {
+		t.Fatalf("Failed to set JWT_SECRET: %v", err)
+		return
+	}
 	// Setup
-	cfg, err := config.Load()
-	if err != nil {
-		t.Fatalf("Failed to load config: %v", err)
-	}
-
-	dbConn, err := dbConnection.NewDB(cfg.DatabaseURL)
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %v", err)
-	}
+	dbConn := SetupDB(t)
 	defer dbConn.Close()
 
 	queries := database.New(dbConn)
 	r := router.NewRouter(queries)
 
+	// Clear DB
+	ClearDB(t, dbConn)
 	// Test login
 	// Test Case 1: Login New User
 	t.Run("Login New User", func(t *testing.T) {

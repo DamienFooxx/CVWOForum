@@ -1,0 +1,259 @@
+{
+  "relationships": [
+    {
+      "from": "users",
+      "to": "topics",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "topics.created_by -> users.id",
+      "why": "A user can create many topics; each topic has exactly one creator."
+    },
+    {
+      "from": "topics",
+      "to": "posts",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "posts.topic_id -> topics.id",
+      "why": "A topic contains many posts; each post belongs to one topic."
+    },
+    {
+      "from": "users",
+      "to": "posts",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "posts.author_id -> users.id",
+      "why": "A user can author many posts; each post has one author."
+    },
+    {
+      "from": "posts",
+      "to": "comments",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "comments.post_id -> posts.id",
+      "why": "A post can have many comments; each comment belongs to one post."
+    },
+    {
+      "from": "users",
+      "to": "comments",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "comments.author_id -> users.id",
+      "why": "A user can write many comments; each comment has one author."
+    },
+
+    {
+      "from": "users",
+      "to": "topic_follows",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "topic_follows.user_id -> users.id",
+      "why": "Each follow row belongs to one user; a user can follow many topics."
+    },
+    {
+      "from": "topics",
+      "to": "topic_follows",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "topic_follows.topic_id -> topics.id",
+      "why": "Each follow row belongs to one topic; a topic can have many followers."
+    },
+    {
+      "from": "users",
+      "to": "topics",
+      "type": "many_to_many",
+      "through": "topic_follows",
+      "from_cardinality": "0..*",
+      "to_cardinality": "0..*",
+      "constraint": "PK(topic_follows.user_id, topic_follows.topic_id)",
+      "why": "Users can follow many topics; topics can be followed by many users; composite PK prevents duplicate follows."
+    },
+
+    {
+      "from": "users",
+      "to": "notifications",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "notifications.user_id -> users.id",
+      "why": "A user can receive many notifications; each notification is for one user."
+    },
+
+    {
+      "from": "reaction_types",
+      "to": "reactions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "reactions.reaction_type_id -> reaction_types.id",
+      "why": "A reaction type (like) can be used many times; each reaction has one type."
+    },
+    {
+      "from": "users",
+      "to": "reactions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "reactions.user_id -> users.id",
+      "why": "A user can make many reactions; each reaction belongs to one user."
+    },
+
+    {
+      "from": "posts",
+      "to": "post_reactions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "post_reactions.post_id -> posts.id",
+      "why": "A post can receive many reactions; each post_reaction targets one post."
+    },
+    {
+      "from": "comments",
+      "to": "comment_reactions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "comment_reactions.comment_id -> comments.id",
+      "why": "A comment can receive many reactions; each comment_reaction targets one comment."
+    },
+    {
+      "from": "reactions",
+      "to": "post_reactions",
+      "type": "one_to_zero_or_one",
+      "from_cardinality": "1",
+      "to_cardinality": "0..1",
+      "fk": "post_reactions.reaction_id -> reactions.id",
+      "why": "A reaction targets at most one post (if it's a post reaction)."
+    },
+    {
+      "from": "reactions",
+      "to": "comment_reactions",
+      "type": "one_to_zero_or_one",
+      "from_cardinality": "1",
+      "to_cardinality": "0..1",
+      "fk": "comment_reactions.reaction_id -> reactions.id",
+      "why": "A reaction targets at most one comment (if it's a comment reaction)."
+    },
+    {
+      "invariant": "exclusive_reaction_target",
+      "rule": "Each reactions.id must appear in exactly one of post_reactions OR comment_reactions (not both).",
+      "enforcement": "application_or_trigger",
+      "why": "Prevents one reaction from targeting multiple objects."
+    },
+
+    {
+      "from": "posts",
+      "to": "post_revisions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "post_revisions.post_id -> posts.id",
+      "why": "A post can have many revisions; each revision belongs to one post."
+    },
+    {
+      "from": "users",
+      "to": "post_revisions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "post_revisions.edited_by -> users.id",
+      "why": "A user/admin can create many revision entries; each revision has one editor."
+    },
+    {
+      "from": "comments",
+      "to": "comment_revisions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "comment_revisions.comment_id -> comments.id",
+      "why": "A comment can have many revisions; each revision belongs to one comment."
+    },
+    {
+      "from": "users",
+      "to": "comment_revisions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "comment_revisions.edited_by -> users.id",
+      "why": "A user/admin can create many comment revision entries; each has one editor."
+    },
+
+    {
+      "from": "users",
+      "to": "user_bans",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "user_bans.user_id -> users.id",
+      "why": "A user can have multiple ban/suspension records over time."
+    },
+    {
+      "from": "users",
+      "to": "user_bans",
+      "role": "banned_by",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "user_bans.banned_by -> users.id",
+      "why": "An admin (a user) can ban many users; each ban has one banning admin."
+    },
+    {
+      "from": "users",
+      "to": "user_bans",
+      "role": "lifted_by",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "user_bans.lifted_by -> users.id (nullable)",
+      "why": "A ban may be active; if lifted, one admin is recorded."
+    },
+
+    {
+      "from": "users",
+      "to": "content_reports",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "content_reports.reporter_id -> users.id",
+      "why": "A user can file many reports; each report has one reporter."
+    },
+    {
+      "from": "users",
+      "to": "content_reports",
+      "role": "resolved_by",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "content_reports.resolved_by -> users.id (nullable)",
+      "why": "Reports may be unresolved; if resolved, one admin is recorded."
+    },
+    {
+      "invariant": "polymorphic_report_target",
+      "rule": "content_reports.target_type + target_id refers to exactly one row in posts OR comments OR topics.",
+      "enforcement": "application_or_trigger_or_split_tables",
+      "why": "Polymorphic relationship cannot be enforced by standard SQL FK."
+    },
+
+    {
+      "from": "users",
+      "to": "moderation_actions",
+      "type": "one_to_many",
+      "from_cardinality": "1",
+      "to_cardinality": "0..*",
+      "fk": "moderation_actions.admin_id -> users.id",
+      "why": "An admin can take many actions; each action has one actor."
+    },
+    {
+      "invariant": "polymorphic_moderation_target",
+      "rule": "moderation_actions.target_type + target_id refers to exactly one row in users OR topics OR posts OR comments.",
+      "enforcement": "application_or_trigger_or_split_tables",
+      "why": "General audit log needs flexible target types."
+    }
+  ]
+}

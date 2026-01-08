@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/DamienFooxx/CVWOForum/internal/auth"
@@ -50,7 +51,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// Return HTTP response
 	w.Header().Set("Content-Type", "application/json")
 	// Convert back to JSON
-	json.NewEncoder(w).Encode(user)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		fmt.Printf("Error encoding JSON: %v\n", err)
+	}
 }
 
 // Login handles POST /login
@@ -104,8 +107,10 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Return HTTP response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"token":    token,
 		"username": req.Username,
-	})
+	}); err != nil {
+		fmt.Printf("Error encoding JSON: %v\n", err)
+	}
 }

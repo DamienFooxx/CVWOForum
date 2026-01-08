@@ -14,15 +14,18 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 
 	// Initialise handlers
 	userHandler := handler.NewUserHandler(queries)
+	topicHandler := handler.NewTopicHandler(queries)
 
 	// Register urls
 	r.Get("/health", handler.Health)
 	r.Post("/users", userHandler.CreateUser)
 	r.Post("/login", userHandler.Login)
+	r.Get("/topics", topicHandler.ListTopics)
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware)
+		r.Post("/topics", topicHandler.CreateTopic)
 	})
 
 	return r

@@ -22,8 +22,9 @@ type Topic struct {
 }
 
 type User struct {
-	UserID    int64
-	Username  string
-	Bio       string
-	CreatedAt pgtype.Timestamptz
+	UserID       int64
+	Username     string
+	PasswordHash string
+	Bio          string
+	CreatedAt    pgtype.Timestamptz
 }

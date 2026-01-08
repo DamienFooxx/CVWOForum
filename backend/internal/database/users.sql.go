@@ -7,22 +7,32 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, bio)
-VALUES ($1, $2)
+INSERT INTO users (username, password_hash, bio)
+VALUES ($1, $2, $3)
 RETURNING user_id, username, bio, created_at
 `
 
 type CreateUserParams struct {
-	Username string
-	Bio      string
+	Username     string
+	PasswordHash string
+	Bio          string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Bio)
-	var i User
+type CreateUserRow struct {
+	UserID    int64
+	Username  string
+	Bio       string
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.PasswordHash, arg.Bio)
+	var i CreateUserRow
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
@@ -33,7 +43,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT user_id, username, bio, created_at
+SELECT user_id, username, password_hash, bio, created_at
 FROM users
 WHERE username = $1
 `
@@ -44,6 +54,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
+		&i.PasswordHash,
 		&i.Bio,
 		&i.CreatedAt,
 	)
@@ -56,15 +67,22 @@ FROM users
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+type ListUsersRow struct {
+	UserID    int64
+	Username  string
+	Bio       string
+	CreatedAt pgtype.Timestamptz
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.UserID,
 			&i.Username,

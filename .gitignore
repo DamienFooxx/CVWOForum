@@ -31,5 +31,5 @@ go.work.sum
 .idea/
 .vscode/
 
-databaseERD.dbml
-Cardinality.json
+.databaseERD.dbml
+.Cardinality.json
