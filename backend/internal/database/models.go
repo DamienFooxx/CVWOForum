@@ -8,6 +8,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Topic struct {
+	TopicID       int64
+	CreatedBy     int64
+	Name          string
+	Description   string
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+	Status        pgtype.Text
+	RemovedAt     pgtype.Timestamptz
+	RemovedBy     pgtype.Int8
+	RemovalReason pgtype.Text
+}
+
 type User struct {
 	UserID    int64
 	Username  string
