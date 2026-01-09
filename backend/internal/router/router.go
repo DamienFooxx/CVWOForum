@@ -32,7 +32,7 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	// Posts
 	r.Get("/posts", postHandler.SearchPostsGlobal)
 	r.Get("/topics/{topicID}/posts", postHandler.SearchPostsTopics)
-	r.Get("/topics/{topicID}/posts/{postID}", postHandler.GetPost)
+	r.Get("/posts/{postID}", postHandler.GetPost)
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
