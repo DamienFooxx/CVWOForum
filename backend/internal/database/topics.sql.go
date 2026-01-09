@@ -117,3 +117,48 @@ func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
 	}
 	return items, nil
 }
+
+const searchTopics = `-- name: SearchTopics :many
+SELECT topic_id, created_by, name, description, created_at, status
+FROM topics
+WHERE
+    (name ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%')
+    AND status = 'active'
+ORDER BY created_at DESC
+`
+
+type SearchTopicsRow struct {
+	TopicID     int64
+	CreatedBy   int64
+	Name        string
+	Description string
+	CreatedAt   pgtype.Timestamptz
+	Status      pgtype.Text
+}
+
+func (q *Queries) SearchTopics(ctx context.Context, dollar_1 pgtype.Text) ([]SearchTopicsRow, error) {
+	rows, err := q.db.Query(ctx, searchTopics, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchTopicsRow
+	for rows.Next() {
+		var i SearchTopicsRow
+		if err := rows.Scan(
+			&i.TopicID,
+			&i.CreatedBy,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

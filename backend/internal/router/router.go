@@ -15,17 +15,30 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	// Initialise handlers
 	userHandler := handler.NewUserHandler(queries)
 	topicHandler := handler.NewTopicHandler(queries)
+	postHandler := handler.NewPostHandler(queries)
 
-	// Register urls
+	// Register URLs
+	// Health
 	r.Get("/health", handler.Health)
+
+	// Users
 	r.Post("/users", userHandler.CreateUser)
 	r.Post("/login", userHandler.Login)
-	r.Get("/topics", topicHandler.ListTopics)
+
+	// Topics
+	r.Get("/topics", topicHandler.SearchTopics) // Has Fuzzy Search
+	r.Get("/topics/{topicID}", topicHandler.GetTopic)
+
+	// Posts
+	r.Get("/posts", postHandler.SearchPostsGlobal)
+	r.Get("/topics/{topicID}/posts", postHandler.SearchPostsTopics)
+	r.Get("/topics/{topicID}/posts/{postID}", postHandler.GetPost)
 
 	// Protected Routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware)
 		r.Post("/topics", topicHandler.CreateTopic)
+		r.Post("/topics/{topicID}/posts", postHandler.CreatePost)
 	})
 
 	return r

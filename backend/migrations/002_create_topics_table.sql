@@ -13,5 +13,7 @@ CREATE TABLE Topics (
     removal_reason TEXT
 );
 
+CREATE INDEX idx_topics_created_at ON topics(created_at DESC); -- Index for faster queries
+
 -- +goose Down
 DROP TABLE Topics;

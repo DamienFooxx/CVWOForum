@@ -3,6 +3,7 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -108,5 +109,44 @@ func TestTopics(t *testing.T) {
 		assert.Equal(t, "testTopic", resp[1]["name"])
 		assert.Equal(t, "testDescription2", resp[0]["description"])
 		assert.Equal(t, "testDescription", resp[1]["description"])
+	})
+
+	// Test Case 4: Test Fuzzy Search
+	t.Run("Fuzzy Search", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/topics?q=Topic2", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp []map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		assert.Len(t, resp, 1)
+		assert.Equal(t, "testTopic2", resp[0]["name"])
+	})
+
+	// Test Case 5: Get Topic
+	t.Run("Get Topic", func(t *testing.T) {
+		wcreate := createTopic(token, "testTopic3", "testDescription3")
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		topicID := int64(createResp["topic_id"].(float64))
+
+		url := fmt.Sprintf("/topics/%d", topicID)
+		req := httptest.NewRequest("GET", url, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var resp map[string]interface{}
+		err = json.Unmarshal(w.Body.Bytes(), &resp)
+		assert.NoError(t, err)
+
+		assert.Equal(t, float64(topicID), resp["topic_id"])
+		assert.Equal(t, "testTopic3", resp["name"])
 	})
 }
