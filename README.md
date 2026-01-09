@@ -20,16 +20,13 @@ A modern forum platform designed to enhance engagement, credibility, and user ex
 
 ### Backend
 
-* Go
-
-### Database
-
+* Go (Golang)
 * PostgreSQL
 
 ### Authentication
 
-* Username + JWT
-* Google OAuth 2.0
+* Username + JWT (Implemented)
+* Google OAuth 2.0 (Planned)
 
 ### Deployment & Infrastructure
 
@@ -37,38 +34,85 @@ A modern forum platform designed to enhance engagement, credibility, and user ex
 * Containerisation: Docker
 * CI/CD: GitHub Actions
 
-## Features
+## Features (Current Status)
 
-### Users Can:
+### ✅ Implemented (Backend)
+*   **Authentication**:
+    *   Username-only login (Passwordless/Simple).
+    *   JWT-based session management.
+*   **Users**:
+    *   Registration and Login.
+*   **Topics**:
+    *   Create Topics (Protected).
+    *   List Topics (Public).
+    *   Fuzzy Search Topics (`?q=...`).
+*   **Posts**:
+    *   Create Posts in Topics (Protected).
+    *   List Posts by Topic.
+    *   Global Feed (List All Posts).
+    *   Fuzzy Search Posts (Global & Per-Topic).
+*   **Testing**:
+    *   Robust integration tests for all features using `testify` and `pgx`.
 
-* Create and manage topics
-* Create and edit posts
-* Create and edit comments
-* React & unreact to posts and comments
-* Browse via an **Explore Homepage** (improves engagement)
-* Search topics and posts easily
-* Access **history tools**:
+### 🚧 In Progress / Planned
+*   Comments
+*   Reactions
+*   Contribution/Reputation Scores
+*   Frontend Integration
 
-    * Search past comments (reply easily)
-    * Search past posts (track ongoing discussions)
-* Receive notifications when:
+## Project Structure (Backend)
 
-    * New posts appear in followed topics
-    * Someone comments on their posts
-* View a **Contribution Score**
+```
+backend/
+├── cmd/server/         # Application entry point
+├── internal/
+│   ├── auth/           # JWT authentication logic
+│   ├── config/         # Configuration loading
+│   ├── database/       # Generated SQLC code (Queries & Models)
+│   ├── dbConnection/   # Database connection setup
+│   ├── handler/        # HTTP Handlers (User, Topic, Post)
+│   ├── middleware/     # HTTP Middleware (Auth)
+│   └── router/         # Route definitions (Chi)
+├── migrations/         # SQL Migrations (Goose)
+├── tests/              # Integration tests
+├── Makefile            # Build and utility commands
+└── sqlc.yaml           # SQLC configuration
+```
 
-    * Shows user activity levels
-* View a **Reputation Score**
+## Getting Started (Backend)
 
-    * Flags users with consistently harmful or false content
+### Prerequisites
+*   Go 1.25+
+*   Docker & Docker Compose
+*   Make (Optional but recommended)
 
-### Admin Capabilities
+### Setup
+1.  **Start Database**:
+    ```sh
+    docker-compose up -d
+    ```
+2.  **Run Migrations**:
+    ```sh
+    cd backend
+    make migrate-up
+    ```
+3.  **Run Server**:
+    ```sh
+    go run cmd/server/main.go
+    ```
 
-Admins are extended users who can:
+### Testing
+Run the integration test suite:
+```sh
+cd backend
+make test
+```
 
-* Moderate and edit hateful or harmful content
-* Manage or ban users
-* Manage and edit topics
+### Linting
+```sh
+cd backend
+make lint
+```
 
 ## Database UML
 
@@ -84,9 +128,8 @@ Admins are extended users who can:
   * pgxPool minimize the overhead of connection handshakes and authentication by having multiple open connections.
   * pgx provides better type safety when working with sqlc.
 * Migrations: **goose**
-* Auth: **jwt / oauth2**
-* Validation: **go-playground**
-* Logging: **zap**
+* Auth: **golang-jwt/jwt/v5**
+* Config: **godotenv**
 * Testing: **testify**
 
 ### Frontend (React + TypeScript)

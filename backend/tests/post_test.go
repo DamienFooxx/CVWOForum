@@ -31,7 +31,10 @@ func TestPosts(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 		var resp map[string]string
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		if err != nil {
+			return ""
+		}
 		return resp["token"]
 	}
 
@@ -43,7 +46,10 @@ func TestPosts(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 		var resp map[string]interface{}
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		if err != nil {
+			return 0
+		}
 		return int64(resp["topic_id"].(float64))
 	}
 
@@ -97,7 +103,10 @@ func TestPosts(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var resp []map[string]interface{}
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		err := json.Unmarshal(w.Body.Bytes(), &resp)
+		if err != nil {
+			return
+		}
 		assert.Len(t, resp, 2)
 		assert.Equal(t, "testPost1 from Topic2", resp[0]["title"])
 		assert.Equal(t, "testPost", resp[1]["title"])
@@ -116,7 +125,10 @@ func TestPosts(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, wCurr.Code)
 		var resp []map[string]interface{}
-		json.Unmarshal(wCurr.Body.Bytes(), &resp)
+		err := json.Unmarshal(wCurr.Body.Bytes(), &resp)
+		if err != nil {
+			return
+		}
 
 		assert.Len(t, resp, 2)
 		assert.Equal(t, "testPost2", resp[0]["title"])

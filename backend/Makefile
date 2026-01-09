@@ -20,3 +20,7 @@ test:
 	go test -v ./tests/...
 
 .PHONY: migrate-up migrate-down db-reset gen test
+
+# Run linter
+lint:
+	golangci-lint run
