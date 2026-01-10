@@ -8,6 +8,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Comment struct {
+	CommentID     int64
+	PostID        int64
+	CommentedBy   int64
+	ParentID      pgtype.Int8
+	Body          string
+	CreatedAt     pgtype.Timestamptz
+	EditedAt      pgtype.Timestamptz
+	Status        string
+	RemovedAt     pgtype.Timestamptz
+	RemovedBy     pgtype.Int8
+	RemovalReason pgtype.Text
+}
+
 type Post struct {
 	PostID        int64
 	TopicID       int64
@@ -16,7 +30,7 @@ type Post struct {
 	Body          string
 	CreatedAt     pgtype.Timestamptz
 	UpdatedAt     pgtype.Timestamptz
-	Status        pgtype.Text
+	Status        string
 	RemovedAt     pgtype.Timestamptz
 	RemovedBy     pgtype.Int8
 	RemovalReason pgtype.Text
@@ -29,7 +43,7 @@ type Topic struct {
 	Description   string
 	CreatedAt     pgtype.Timestamptz
 	UpdatedAt     pgtype.Timestamptz
-	Status        pgtype.Text
+	Status        string
 	RemovedAt     pgtype.Timestamptz
 	RemovedBy     pgtype.Int8
 	RemovalReason pgtype.Text

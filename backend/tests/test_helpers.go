@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// SetupDB connects to the test database and returns the pool and a cleanup function
+// SetupDB connects to the test database and returns the pool and a clean-up function
 func SetupDB(t *testing.T) *pgxpool.Pool {
 	cfg, err := config.Load()
 	if err != nil {
