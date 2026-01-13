@@ -29,7 +29,7 @@ type CreateTopicRow struct {
 	Name        string
 	Description string
 	CreatedAt   pgtype.Timestamptz
-	Status      pgtype.Text
+	Status      string
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (CreateTopicRow, error) {
@@ -58,7 +58,7 @@ type GetTopicRow struct {
 	Name        string
 	Description string
 	CreatedAt   pgtype.Timestamptz
-	Status      pgtype.Text
+	Status      string
 }
 
 func (q *Queries) GetTopic(ctx context.Context, topicID int64) (GetTopicRow, error) {
@@ -88,7 +88,7 @@ type ListTopicsRow struct {
 	Name        string
 	Description string
 	CreatedAt   pgtype.Timestamptz
-	Status      pgtype.Text
+	Status      string
 }
 
 func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
@@ -133,7 +133,7 @@ type SearchTopicsRow struct {
 	Name        string
 	Description string
 	CreatedAt   pgtype.Timestamptz
-	Status      pgtype.Text
+	Status      string
 }
 
 func (q *Queries) SearchTopics(ctx context.Context, dollar_1 pgtype.Text) ([]SearchTopicsRow, error) {

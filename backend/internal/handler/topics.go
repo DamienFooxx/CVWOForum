@@ -76,7 +76,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Name:        topic.Name,
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
-		Status:      topic.Status.String,
+		Status:      topic.Status,
 	}
 
 	// Return HTTP response
@@ -112,7 +112,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Name:        topic.Name,
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
-				Status:      topic.Status.String,
+				Status:      topic.Status,
 			})
 		}
 	} else {
@@ -128,7 +128,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Name:        topic.Name,
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
-				Status:      topic.Status.String,
+				Status:      topic.Status,
 			})
 		}
 	}
@@ -174,7 +174,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		Name:        topic.Name,
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
-		Status:      topic.Status.String,
+		Status:      topic.Status,
 	}
 
 	// Send Response
