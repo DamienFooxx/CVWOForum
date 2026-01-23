@@ -24,3 +24,7 @@ test:
 # Run linter
 lint:
 	golangci-lint run
+
+# Run Server
+run: 
+	go run ./cmd/server/main.go
