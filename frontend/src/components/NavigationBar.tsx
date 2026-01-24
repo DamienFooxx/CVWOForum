@@ -1,13 +1,12 @@
 import React from 'react';
 import { cn } from '../lib/utils';
-import { Home, MessageSquare, Search, Bell, User } from 'lucide-react';
-import type {PageType, NavigationItem} from '../types'; // Import from central file
+import { Home, Bell, User, LogIn, LogOut } from 'lucide-react';
+import type {PageType, NavigationItem} from '../types';
 
 // --- Configuration ---
 
 const NAV_ITEMS: NavigationItem[] = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'topics', label: 'Topics', icon: MessageSquare },
 ];
 
 // --- Components ---
@@ -15,34 +14,20 @@ const NAV_ITEMS: NavigationItem[] = [
 interface NavbarProps {
     currentPage: PageType;
     onNavigate: (page: PageType) => void;
+    isAuthenticated: boolean;
+    onLoginClick: () => void;
+    onLogoutClick: () => void;
 }
 
-export function Navbar({ currentPage, onNavigate }: NavbarProps) {
+export function Navbar({ currentPage, onNavigate, isAuthenticated, onLoginClick, onLogoutClick }: NavbarProps) {
     return (
         <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 max-w-screen items-center justify-between px-4 md:px-8">
-
-                {/* Left: Logo & Nav */}
-                <div className="flex items-center gap-8">
-                    {/* Logo */}
-                    <div
-                        className="flex items-center gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
-                        onClick={() => onNavigate('home')}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') onNavigate('home');
-                        }}
-                    >
-                        <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                            <div className="h-3 w-3 rounded-full bg-primary" />
-                        </div>
-                        <span className="text-lg font-medium tracking-tight text-foreground">
-              CVWO Forum
-            </span>
-                    </div>
-
-                    {/* Desktop Navigation (Mapped!) */}
+                <div className="flex items-center gap-6">
+                    <span className="text-lg font-medium tracking-tight text-foreground">
+                        CVWO Forum
+                    </span>
+                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
                         {NAV_ITEMS.map((item) => (
                             <NavItem
@@ -58,19 +43,29 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-4">
-                    {/* Search */}
-                    <div className="hidden md:flex items-center relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="h-9 w-64 rounded-xl border border-input bg-input-background px-9 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        />
-                    </div>
-
-                    {/* Icons */}
-                    <IconButton icon={Bell} label="Notifications" />
-                    <IconButton icon={User} label="User Profile" />
+                    {isAuthenticated ? (
+                        <>
+                            <IconButton icon={Bell} label="Notifications" />
+                            <div className="flex items-center gap-2">
+                                <IconButton icon={User} label="User Profile" />
+                                <button 
+                                    onClick={onLogoutClick}
+                                    className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+                                    title="Logout"
+                                >
+                                    <LogOut className="h-5 w-5" strokeWidth={1.5} />
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <button
+                            onClick={onLoginClick}
+                            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+                        >
+                            <LogIn className="h-4 w-4" />
+                            Sign In
+                        </button>
+                    )}
                 </div>
             </div>
         </nav>

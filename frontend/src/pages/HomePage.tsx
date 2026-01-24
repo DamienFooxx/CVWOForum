@@ -1,7 +1,9 @@
-import {useEffect, useState} from "react";
+import {useEffect, useState, useCallback} from "react";
+import {Plus, Search} from 'lucide-react';
 import { TopicCard } from '../components/TopicCard';
-import type { Topic, APIErrorResponse } from '../types'; // Import strict type
-
+import { CreateTopicModal } from '../components/CreateTopicModal';
+import type { Topic, APIErrorResponse } from '../types';
+import { cn } from '../lib/utils';
 
 interface HomePageProps {
   onTopicClick: (topicId: string) => void;
@@ -12,35 +14,38 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Fetch data on component mount
-  useEffect(() => {
-    const fetchTopics = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/topics`);
+  // Check if user is logged in
+  const isAuthenticated = !!localStorage.getItem('token');
 
-        if (!response.ok) {
-          // Try to get error message from backend JSON if any
-          const errorData = await response.json().catch(() => null) as APIErrorResponse;
-          throw new Error(errorData?.message || errorData?.error || `Server error: ${response.status}`);
-        }
+  const fetchTopics = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics`);
 
-        const data = await response.json() as Topic[];
-        setTopics(data);
-      } catch (err) {
-        console.error(err);
-        // 2. Set the actual error message
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unexpected error occurred');
-        }
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null) as APIErrorResponse;
+        throw new Error(errorData?.message || errorData?.error || `Server error: ${response.status}`);
       }
-    };
-    fetchTopics();
+
+      const data = await response.json() as Topic[];
+      setTopics(data);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchTopics();
+  }, [fetchTopics]);
 
   return (
       <main className="min-h-screen bg-background pb-20">
@@ -58,6 +63,38 @@ export function HomePage({ onTopicClick }: HomePageProps) {
         <section className="container px-4 md:px-8 mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-medium tracking-tight">Explore Topics</h2>
+            {/* Search */}
+            <div className="hidden md:flex items-left relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input
+                  type="text"
+                  placeholder="Search"
+                  className="h-9 w-140 rounded-xl border border-input bg-input-background px-9 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+            
+            <div className="relative group">
+              <button 
+                onClick={() => isAuthenticated && setIsCreateModalOpen(true)}
+                disabled={!isAuthenticated}
+                className={cn(
+                  "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm",
+                  isAuthenticated 
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md" 
+                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
+                )}
+              >
+                <Plus className="h-4 w-4" />
+                New Topic
+              </button>
+              
+              {/* Tooltip for non-authenticated users */}
+              {!isAuthenticated && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  Sign in to create a topic
+                </div>
+              )}
+            </div>
           </div>
           {/* 3. Conditional Rendering */}
           {loading ? (
@@ -90,6 +127,12 @@ export function HomePage({ onTopicClick }: HomePageProps) {
               </div>
           )}
         </section>
+
+        <CreateTopicModal 
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onTopicCreated={fetchTopics}
+        />
       </main>
   );
 }
