@@ -85,7 +85,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		Body:      post.Body,
 		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 		CreatedBy: post.CreatedBy,
-		Status:    post.Status,
+		Status:    post.Status.String,
 	}
 
 	// Return Response
@@ -112,6 +112,7 @@ func (h *PostHandler) SearchPostsGlobal(w http.ResponseWriter, r *http.Request) 
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 
 	response := []Response{}
@@ -124,7 +125,8 @@ func (h *PostHandler) SearchPostsGlobal(w http.ResponseWriter, r *http.Request) 
 			Body:      post.Body,
 			CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 			CreatedBy: post.CreatedBy,
-			Status:    post.Status,
+			Status:    post.Status.String,
+			Username:  post.Username,
 		})
 	}
 
@@ -153,6 +155,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 	response := []Response{}
 
@@ -174,7 +177,8 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				Body:      p.Body,
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
-				Status:    p.Status,
+				Status:    p.Status.String,
+				Username:  p.Username,
 			})
 		}
 	} else {
@@ -192,7 +196,8 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				Body:      p.Body,
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
-				Status:    p.Status,
+				Status:    p.Status.String,
+				Username:  p.Username,
 			})
 		}
 	}
@@ -230,6 +235,7 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 
 	resp := Response{
@@ -239,7 +245,8 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 		Body:      post.Body,
 		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 		CreatedBy: post.CreatedBy,
-		Status:    post.Status,
+		Status:    post.Status.String,
+		Username:  post.Username,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

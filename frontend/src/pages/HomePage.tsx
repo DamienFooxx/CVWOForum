@@ -82,7 +82,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {topics.map((topic) => (
                     <TopicCard
-                        key={topic.id}
+                        key={topic.topic_id}
                         topic={topic}
                         onClick={onTopicClick}
                     />

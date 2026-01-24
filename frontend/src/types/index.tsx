@@ -12,36 +12,57 @@ export interface NavigationItem {
 }
 
 export interface Topic {
-    id: string;
-    title: string;
+    topic_id: number;
+    created_by: number;
+    name: string;
     description: string;
-    createdAt: string;
-    postCount: number;
-    lastActive: string;
+    created_at: string; // ISO timestamp string
+    updated_at: string;
+    status: string;
+    removed_at: string;
+    removed_by: number;
+    removal_reason: string;
+    post_count?: number;
+    last_active?: string;
 }
 
 export interface Post {
-    id: string;
-    topicId: string;
+    post_id: number;
+    topic_id: number;
+    created_by: number;
     title: string;
-    content: string;
-    author: User;
-    createdAt: string;
-    likes: number;
-    commentCount: number;
-}
-
-export interface Comment {
-    id: string;
-    postId: string;
-    content: string;
-    author: User;
-    createdAt: string;
-    likes: number;
+    body: string;
+    created_at: string;
+    updated_at?: string;
+    status: string;
+    removed_at: string;
+    removed_by: number;
+    removal_reason: string;
+    username?: string;
+    likes?: number;
+    comment_count?: number;
 }
 
 export interface User {
-    id: string;
+    user_id: number;
     username: string;
-    avatarUrl?: string; // Optional
+    bio?: string;
+    created_at: string;
+}
+
+export interface Comment {
+    comment_id: number;
+    post_id: number;
+    commented_by: number;
+    parent_id: number | null; // Nullable for top-level comments
+    body: string;
+    created_at: string;
+    updated_at?: string;
+    status: string;
+    removed_at?: string;
+    removed_by?: number;
+    removal_reason?: string;
+    
+    // Optional fields for UI
+    username?: string; 
 }
