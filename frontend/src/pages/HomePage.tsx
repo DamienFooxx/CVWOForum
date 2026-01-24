@@ -15,14 +15,19 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Check if user is logged in
   const isAuthenticated = !!localStorage.getItem('token');
 
-  const fetchTopics = useCallback(async () => {
+  const fetchTopics = useCallback(async (query: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics`);
+      const url = query 
+        ? `${import.meta.env.VITE_API_URL}/topics?q=${encodeURIComponent(query)}`
+        : `${import.meta.env.VITE_API_URL}/topics`;
+      
+      const response = await fetch(url);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null) as APIErrorResponse;
@@ -43,9 +48,21 @@ export function HomePage({ onTopicClick }: HomePageProps) {
     }
   }, []);
 
+  // Effect to fetch topics when component mounts or search query changes
   useEffect(() => {
-    fetchTopics();
-  }, [fetchTopics]);
+    // Simple debounce: wait 300ms after user stops typing
+    const handler = setTimeout(() => {
+      fetchTopics(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery, fetchTopics]);
+
+  const handleRefresh = () => {
+    fetchTopics(searchQuery);
+  }
 
   return (
       <main className="min-h-screen bg-background pb-20 m-10">
@@ -74,6 +91,8 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                     <input
                         type="text"
                         placeholder="Search topics..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-14 pl-9 pr-4 rounded-xl border border-input bg-input-background text-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                 </div>
@@ -119,11 +138,15 @@ export function HomePage({ onTopicClick }: HomePageProps) {
           ) : topics.length === 0 ? (
               // EMPTY STATE
               <div className="text-center py-20 text-muted-foreground bg-secondary/30 rounded-2xl border border-dashed border-border">
-                <p className="text-lg font-medium text-foreground">No topics found</p>
-                <p className="text-sm mt-2">Be the first to start a topic!</p>
+                <p className="text-lg font-medium text-foreground">
+                  {searchQuery ? `No topics found for "${searchQuery}"` : "No topics found"}
+                </p>
+                <p className="text-sm mt-2">
+                  {searchQuery ? "Try a different search." : "Be the first to start a topic!"}
+                </p>
               </div>
           ) : (
-              // SUCESS STATE
+              // SUCCESS STATE
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {topics.map((topic) => (
                     <TopicCard
@@ -139,7 +162,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
         <CreateTopicModal 
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onTopicCreated={fetchTopics}
+          onTopicCreated={handleRefresh}
         />
       </main>
   );

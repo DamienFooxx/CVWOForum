@@ -16,15 +16,22 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const isAuthenticated = !!localStorage.getItem('token');
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (query: string = '') => {
     try {
       setLoading(true);
+      
+      // Construct URL for posts with optional search query
+      const postsUrl = query 
+        ? `${import.meta.env.VITE_API_URL}/topics/${topicId}/posts?q=${encodeURIComponent(query)}`
+        : `${import.meta.env.VITE_API_URL}/topics/${topicId}/posts`;
+
       const [topicRes, postsRes] = await Promise.all([
         fetch(`${import.meta.env.VITE_API_URL}/topics/${topicId}`),
-        fetch(`${import.meta.env.VITE_API_URL}/topics/${topicId}/posts`)
+        fetch(postsUrl)
       ]);
 
       if (topicRes.ok) {
@@ -43,15 +50,26 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
     }
   }, [topicId]);
 
+  // Debounce effect for search
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const handler = setTimeout(() => {
+      fetchData(searchQuery);
+    }, 300);
 
-  if (loading) {
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery, fetchData]);
+
+  const handleRefresh = () => {
+    fetchData(searchQuery);
+  }
+
+  if (loading && !topic) { // Only show full page loading if we don't have topic details yet
     return <div className="p-8 text-center animate-pulse">Loading topic...</div>;
   }
 
-  if (!topic) {
+  if (!topic && !loading) {
     return <div className="p-8 text-center text-destructive">Topic not found</div>;
   }
 
@@ -71,7 +89,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
           {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              {topic.name}
+              {topic?.name}
             </h1>
             <div className="text-sm text-muted-foreground font-medium bg-secondary/50 px-3 py-1 rounded-full">
               {posts.length} discussions
@@ -79,7 +97,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
           </div>
 
           <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mb-6">
-            {topic.description}
+            {topic?.description}
           </p>
           
           {/* Controls Row */}
@@ -90,6 +108,8 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
               <input
                   type="text"
                   placeholder="Search discussions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-10 pl-9 pr-4 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
@@ -120,9 +140,13 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
 
         {/* Posts Feed */}
         <div className="space-y-4">
-          {posts.length === 0 ? (
+          {loading ? (
+             <div className="text-center py-12 text-muted-foreground animate-pulse">Searching...</div>
+          ) : posts.length === 0 ? (
               <div className="text-center py-12 bg-secondary/20 rounded-2xl border border-dashed border-border">
-                <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+                <p className="text-muted-foreground">
+                    {searchQuery ? `No posts found for "${searchQuery}"` : "No posts yet. Be the first to share!"}
+                </p>
               </div>
           ) : (
               posts.map(post => (
@@ -138,7 +162,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
         <CreatePostModal 
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onPostCreated={fetchData}
+          onPostCreated={handleRefresh}
           topicId={topicId}
         />
       </main>
