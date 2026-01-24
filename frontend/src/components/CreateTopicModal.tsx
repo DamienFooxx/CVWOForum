@@ -88,7 +88,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="e.g. Urban Gardening"
+              placeholder="e.g. I LOVE SOC"
               required
               maxLength={50}
             />

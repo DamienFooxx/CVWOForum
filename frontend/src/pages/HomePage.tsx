@@ -35,6 +35,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
       }
 
       const data = await response.json() as Topic[];
+      console.log("Topic data", data);
       setTopics(data);
     } catch (err) {
       console.error(err);
@@ -127,7 +128,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
           {loading ? (
               // Loading
               <div className="text-center py-20 text-muted-foreground animate-pulse">
-                Loading discussions...
+                Loading posts...
               </div>
           ) : error ? (
               // ERROR STATE

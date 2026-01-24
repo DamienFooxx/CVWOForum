@@ -22,8 +22,7 @@ export interface Topic {
     removed_at: string;
     removed_by: number;
     removal_reason: string;
-    post_count?: number;
-    last_active?: string;
+    post_count: number;
 }
 
 export interface Post {
@@ -38,9 +37,9 @@ export interface Post {
     removed_at: string;
     removed_by: number;
     removal_reason: string;
-    username?: string;
+    username: string;
     likes?: number;
-    comment_count?: number;
+    comment_count: number;
 }
 
 export interface User {
@@ -62,7 +61,5 @@ export interface Comment {
     removed_at?: string;
     removed_by?: number;
     removal_reason?: string;
-    
-    // Optional fields for UI
-    username?: string; 
+    username: string;
 }

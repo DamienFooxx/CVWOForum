@@ -29,13 +29,6 @@ describe('PostCard', () => {
     expect(screen.getByText(/1\/5\/2023/)).toBeInTheDocument();
   });
 
-  it('renders fallback username if username is missing', () => {
-    const postWithoutUser = { ...mockPost, username: undefined };
-    render(<PostCard post={postWithoutUser} onClick={() => {}} />);
-
-    expect(screen.getByText('User #2')).toBeInTheDocument();
-  });
-
   it('calls onClick handler when clicked', () => {
     const handleClick = vi.fn();
     render(<PostCard post={mockPost} onClick={handleClick} />);

@@ -23,30 +23,29 @@ export function TopicCard({ topic, onClick }: TopicCardProps) {
             )}
         >
             <div className="space-y-4">
+                {/* Hover Arrow Top Right */}
+                <div className="absolute top-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-primary">
+                    <ArrowRight className="h-5 w-5" />
+                </div>
                 <div>
-                    <h3 className="font-semibold text-lg tracking-tight text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-3xl tracking-tight text-foreground group-hover:text-primary transition-colors">
                         {name}
                     </h3>
-                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                    <p className="mt-2 text-lg text-muted-foreground leading-relaxed line-clamp-2">
                         {description}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-6 flex items-center gap-4 text-xs font-medium text-muted-foreground">
+            <div className="mt-6 flex items-center gap-4 text-s font-medium text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                     <MessageSquare className="h-3.5 w-3.5" />
-                    {/* Fallback to 0 if post_count is undefined */}
-                    <span>{post_count || 0} posts</span>
+                    <span>{post_count} posts</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="ml-auto flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5" />
                     {/* Format date simply */}
                     <span>{new Date(created_at).toLocaleDateString()}</span>
-                </div>
-
-                <div className="ml-auto opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-primary">
-                    <ArrowRight className="h-5 w-5" />
                 </div>
             </div>
         </div>

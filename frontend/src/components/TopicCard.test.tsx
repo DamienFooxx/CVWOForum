@@ -16,7 +16,6 @@ describe('TopicCard', () => {
     removed_by: 0,
     removal_reason: '',
     post_count: 5,
-    last_active: '2023-01-02T00:00:00Z'
   };
 
   it('renders topic information correctly', () => {

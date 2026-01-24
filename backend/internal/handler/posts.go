@@ -68,6 +68,11 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+    // Increment post count
+    if err := h.q.IncrementPostCount(r.Context(), topicID); err != nil {
+        fmt.Printf("Failed to increment post count for topic %d: %v\n", topicID, err)
+    }
+
 	// Create Response
 	type Response struct {
 		PostID    int64  `json:"post_id"`

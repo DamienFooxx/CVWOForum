@@ -88,11 +88,11 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
         <div className="mb-10 border-b border-border/40 pb-8">
           {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
               {topic?.name}
             </h1>
-            <div className="text-sm text-muted-foreground font-medium bg-secondary/50 px-3 py-1 rounded-full">
-              {posts.length} discussions
+            <div className="text-s text-muted-foreground font-medium bg-secondary/50 px-3 py-1 rounded-full">
+              {posts.length} Posts
             </div>
           </div>
 
@@ -107,7 +107,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                   type="text"
-                  placeholder="Search discussions..."
+                  placeholder="Search Posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-10 pl-9 pr-4 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"

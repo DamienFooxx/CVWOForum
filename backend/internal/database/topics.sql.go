@@ -14,7 +14,7 @@ import (
 const createTopic = `-- name: CreateTopic :one
 INSERT INTO topics (created_by, name, description)
 VALUES ($1, $2, $3)
-RETURNING topic_id, created_by, name, description, created_at, status
+RETURNING topic_id, created_by, name, description, created_at, status, post_count
 `
 
 type CreateTopicParams struct {
@@ -30,6 +30,7 @@ type CreateTopicRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
+	PostCount   pgtype.Int8
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (CreateTopicRow, error) {
@@ -42,12 +43,24 @@ func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (Creat
 		&i.Description,
 		&i.CreatedAt,
 		&i.Status,
+		&i.PostCount,
 	)
 	return i, err
 }
 
+const decrementPostCount = `-- name: DecrementPostCount :exec
+UPDATE topics
+SET post_count = post_count - 1
+WHERE topic_id = $1
+`
+
+func (q *Queries) DecrementPostCount(ctx context.Context, topicID int64) error {
+	_, err := q.db.Exec(ctx, decrementPostCount, topicID)
+	return err
+}
+
 const getTopic = `-- name: GetTopic :one
-SELECT topic_id, created_by, name, description, created_at, status
+SELECT topic_id, created_by, name, description, created_at, status, post_count
 FROM topics
 WHERE topic_id = $1
 `
@@ -59,6 +72,7 @@ type GetTopicRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
+	PostCount   pgtype.Int8
 }
 
 func (q *Queries) GetTopic(ctx context.Context, topicID int64) (GetTopicRow, error) {
@@ -71,12 +85,24 @@ func (q *Queries) GetTopic(ctx context.Context, topicID int64) (GetTopicRow, err
 		&i.Description,
 		&i.CreatedAt,
 		&i.Status,
+		&i.PostCount,
 	)
 	return i, err
 }
 
+const incrementPostCount = `-- name: IncrementPostCount :exec
+UPDATE topics
+SET post_count = post_count + 1
+WHERE topic_id = $1
+`
+
+func (q *Queries) IncrementPostCount(ctx context.Context, topicID int64) error {
+	_, err := q.db.Exec(ctx, incrementPostCount, topicID)
+	return err
+}
+
 const listTopics = `-- name: ListTopics :many
-SELECT topic_id, created_by, name, description, created_at, status
+SELECT topic_id, created_by, name, description, created_at, status, post_count
 FROM topics
 WHERE status = 'active'
 ORDER BY created_at DESC
@@ -89,6 +115,7 @@ type ListTopicsRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
+	PostCount   pgtype.Int8
 }
 
 func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
@@ -107,6 +134,7 @@ func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
 			&i.Description,
 			&i.CreatedAt,
 			&i.Status,
+			&i.PostCount,
 		); err != nil {
 			return nil, err
 		}
@@ -119,7 +147,7 @@ func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
 }
 
 const searchTopics = `-- name: SearchTopics :many
-SELECT topic_id, created_by, name, description, created_at, status
+SELECT topic_id, created_by, name, description, created_at, status, post_count
 FROM topics
 WHERE
     (name ILIKE '%' || $1 || '%' OR description ILIKE '%' || $1 || '%')
@@ -134,6 +162,7 @@ type SearchTopicsRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
+	PostCount   pgtype.Int8
 }
 
 func (q *Queries) SearchTopics(ctx context.Context, dollar_1 pgtype.Text) ([]SearchTopicsRow, error) {
@@ -152,6 +181,7 @@ func (q *Queries) SearchTopics(ctx context.Context, dollar_1 pgtype.Text) ([]Sea
 			&i.Description,
 			&i.CreatedAt,
 			&i.Status,
+			&i.PostCount,
 		); err != nil {
 			return nil, err
 		}
