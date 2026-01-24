@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft, MessageSquare, User as UserIcon, Clock, CornerDownRight } from 'lucide-react';
 import type { Post, Comment } from '../types';
+import { CreateCommentModal } from '../components/CreateCommentModal';
+import { cn } from '../lib/utils';
 
 interface PostDetailPageProps {
   postId: string;
@@ -13,37 +15,46 @@ interface CommentNode extends Comment {
 
 export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<CommentNode[]>([]); // Store as tree
+  const [comments, setComments] = useState<CommentNode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [replyParentId, setReplyParentId] = useState<number | null>(null);
+
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [postRes, commentsRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}`),
+        fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`)
+      ]);
+
+      if (postRes.ok) {
+        const postData = await postRes.json() as Post;
+        setPost(postData);
+      }
+
+      if (commentsRes.ok) {
+        const flatComments = await commentsRes.json() as Comment[];
+        const tree = buildCommentTree(flatComments);
+        setComments(tree);
+      }
+    } catch (error) {
+      console.error("Failed to fetch post details", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [postId]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [postRes, commentsRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}`),
-          fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`)
-        ]);
-
-        if (postRes.ok) {
-          const postData = await postRes.json() as Post;
-          setPost(postData);
-        }
-
-        if (commentsRes.ok) {
-          const flatComments = await commentsRes.json() as Comment[];
-          const tree = buildCommentTree(flatComments);
-          setComments(tree);
-        }
-      } catch (error) {
-        console.error("Failed to fetch post details", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [postId]);
+  }, [fetchData]);
+
+  const handleReplyClick = (parentId: number | null) => {
+    setReplyParentId(parentId);
+    setIsReplyModalOpen(true);
+  };
 
   if (loading) return <div className="p-8 text-center animate-pulse">Loading discussion...</div>;
   if (!post) return <div className="p-8 text-center text-destructive">Post not found</div>;
@@ -87,10 +98,26 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
 
       {/* Comments Section */}
       <section>
-        <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Comments
-        </h3>
+        <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Comments
+            </h3>
+            <div className="relative group">
+                <button 
+                    onClick={() => isAuthenticated && handleReplyClick(null)}
+                    disabled={!isAuthenticated}
+                    className={cn("text-sm font-medium", isAuthenticated ? "text-primary hover:text-primary/80" : "text-muted-foreground cursor-not-allowed opacity-70")}
+                >
+                    Post a Comment
+                </button>
+                {!isAuthenticated && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Sign in to comment
+                    </div>
+                )}
+            </div>
+        </div>
 
         <div className="space-y-6">
           {comments.length === 0 ? (
@@ -99,42 +126,56 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
             </div>
           ) : (
             comments.map(comment => (
-              <CommentItem key={comment.comment_id} comment={comment} />
+              <CommentItem key={comment.comment_id} comment={comment} onReply={handleReplyClick} />
             ))
           )}
         </div>
       </section>
+
+      <CreateCommentModal 
+        isOpen={isReplyModalOpen}
+        onClose={() => setIsReplyModalOpen(false)}
+        onCommentCreated={fetchData}
+        postId={postId}
+        parentId={replyParentId}
+      />
     </main>
   );
 }
 
 // --- Helper Functions & Components ---
 
-// Recursive Component to render comments and their replies
-function CommentItem({ comment }: { comment: CommentNode }) {
+// Recursive Component to render comments and replies
+function CommentItem({ comment, onReply }: { comment: CommentNode; onReply: (parentId: number) => void }) {
   return (
     <div className="group">
       {/* Comment Card */}
       <div className="bg-card/50 p-4 rounded-xl border border-border/40 hover:border-primary/20 transition-colors">
         <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">User #{comment.commented_by}</span>
+          <span className="font-medium text-foreground">
+            {/* Use username if available, fallback to ID */}
+            {comment.username || `User #${comment.commented_by}`}
+          </span>
           <span>•</span>
           <span>{new Date(comment.created_at).toLocaleDateString()}</span>
         </div>
         <p className="text-sm text-foreground/90 leading-relaxed">{comment.body}</p>
-        
-        {/* Reply Button (Visual only for now) */}
-        <button className="mt-3 text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100">
+
+        {/* Reply Button */}
+        <button
+            onClick={() => onReply(comment.comment_id)}
+            className="mt-3 text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
+        >
             <CornerDownRight className="h-3 w-3" />
             Reply
         </button>
       </div>
 
-      {/* Render Replies (Nested) */}
+      {/* Render Replies (Nested Comments like Reddit */}
       {comment.replies.length > 0 && (
         <div className="ml-6 mt-3 pl-4 border-l-2 border-border/40 space-y-3">
           {comment.replies.map(reply => (
-            <CommentItem key={reply.comment_id} comment={reply} />
+            <CommentItem key={reply.comment_id} comment={reply} onReply={onReply} />
           ))}
         </div>
       )}
@@ -147,12 +188,12 @@ function buildCommentTree(flatComments: Comment[]): CommentNode[] {
   const commentMap = new Map<number, CommentNode>();
   const roots: CommentNode[] = [];
 
-  // 1. Initialize all nodes
+  // Initialize all nodes
   flatComments.forEach(c => {
     commentMap.set(c.comment_id, { ...c, replies: [] });
   });
 
-  // 2. Link children to parents
+  // Link children to parents
   flatComments.forEach(c => {
     const node = commentMap.get(c.comment_id)!;
     if (c.parent_id) {
@@ -168,8 +209,9 @@ function buildCommentTree(flatComments: Comment[]): CommentNode[] {
     }
   });
 
-  // 3. Sort by date (optional, but good for UX)
-  roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // Sort by date
+  roots.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  roots.forEach(r => r.replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
 
   return roots;
 }

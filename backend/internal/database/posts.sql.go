@@ -31,7 +31,7 @@ type CreatePostRow struct {
 	Title     string
 	Body      string
 	CreatedAt pgtype.Timestamptz
-	Status    pgtype.Text
+	Status    string
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreatePostRow, error) {
@@ -76,7 +76,7 @@ type GetPostRow struct {
 	Title     string
 	Body      string
 	CreatedAt pgtype.Timestamptz
-	Status    pgtype.Text
+	Status    string
 	Username  string
 }
 
@@ -119,7 +119,7 @@ type ListPostsInTopicRow struct {
 	Title     string
 	Body      string
 	CreatedAt pgtype.Timestamptz
-	Status    pgtype.Text
+	Status    string
 	Username  string
 }
 
@@ -177,7 +177,7 @@ type SearchPostsGlobalRow struct {
 	Title     string
 	Body      string
 	CreatedAt pgtype.Timestamptz
-	Status    pgtype.Text
+	Status    string
 	Username  string
 }
 
@@ -241,7 +241,7 @@ type SearchPostsInTopicRow struct {
 	Title     string
 	Body      string
 	CreatedAt pgtype.Timestamptz
-	Status    pgtype.Text
+	Status    string
 	Username  string
 }
 

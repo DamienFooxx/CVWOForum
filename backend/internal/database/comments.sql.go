@@ -88,10 +88,20 @@ func (q *Queries) GetComment(ctx context.Context, commentID int64) (GetCommentRo
 }
 
 const listCommentsByPost = `-- name: ListCommentsByPost :many
-SELECT comment_id, post_id, commented_by, parent_id, body, created_at, edited_at, status
-FROM comments
-WHERE post_id = $1
-ORDER BY created_at ASC
+SELECT
+    c.comment_id,
+    c.post_id,
+    c.commented_by,
+    c.parent_id,
+    c.body,
+    c.created_at,
+    c.edited_at,
+    c.status,
+    u.username
+FROM comments c
+JOIN users u ON c.commented_by = u.user_id
+WHERE c.post_id = $1
+ORDER BY c.created_at ASC
 `
 
 type ListCommentsByPostRow struct {
@@ -103,6 +113,7 @@ type ListCommentsByPostRow struct {
 	CreatedAt   pgtype.Timestamptz
 	EditedAt    pgtype.Timestamptz
 	Status      string
+	Username    string
 }
 
 func (q *Queries) ListCommentsByPost(ctx context.Context, postID int64) ([]ListCommentsByPostRow, error) {
@@ -123,6 +134,7 @@ func (q *Queries) ListCommentsByPost(ctx context.Context, postID int64) ([]ListC
 			&i.CreatedAt,
 			&i.EditedAt,
 			&i.Status,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}

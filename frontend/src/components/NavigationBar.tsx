@@ -24,9 +24,18 @@ export function Navbar({ currentPage, onNavigate, isAuthenticated, onLoginClick,
         <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 max-w-screen items-center justify-between px-4 md:px-8">
                 <div className="flex items-center gap-6">
-                    <span className="text-lg font-medium tracking-tight text-foreground">
-                        CVWO Forum
-                    </span>
+                    <div 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => onNavigate('home')}
+                    >
+                        <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <div className="h-3 w-3 rounded-full bg-primary" />
+                        </div>
+                        <span className="text-lg font-medium tracking-tight text-foreground">
+                            CVWO Forum
+                        </span>
+                    </div>
+
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
                         {NAV_ITEMS.map((item) => (
