@@ -85,7 +85,7 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		Body:      post.Body,
 		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 		CreatedBy: post.CreatedBy,
-		Status:    post.Status.String,
+		Status:    post.Status,
 	}
 
 	// Return Response
@@ -124,7 +124,7 @@ func (h *PostHandler) SearchPostsGlobal(w http.ResponseWriter, r *http.Request) 
 			Body:      post.Body,
 			CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 			CreatedBy: post.CreatedBy,
-			Status:    post.Status.String,
+			Status:    post.Status,
 		})
 	}
 
@@ -174,7 +174,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				Body:      p.Body,
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
-				Status:    p.Status.String,
+				Status:    p.Status,
 			})
 		}
 	} else {
@@ -192,7 +192,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				Body:      p.Body,
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
-				Status:    p.Status.String,
+				Status:    p.Status,
 			})
 		}
 	}
@@ -239,7 +239,7 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 		Body:      post.Body,
 		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 		CreatedBy: post.CreatedBy,
-		Status:    post.Status.String,
+		Status:    post.Status,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -19,6 +19,7 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	userHandler := handler.NewUserHandler(queries)
 	topicHandler := handler.NewTopicHandler(queries)
 	postHandler := handler.NewPostHandler(queries)
+	commentHandler := handler.NewCommentHandler(queries)
 
 	// Register URLs
 	// Health
@@ -37,11 +38,15 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	r.Get("/topics/{topicID}/posts", postHandler.SearchPostsTopics)
 	r.Get("/posts/{postID}", postHandler.GetPost)
 
+	// Comments
+	r.Get("/posts/{postID}/comments", commentHandler.ListComments)
+
 	// Protected Routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware)
 		r.Post("/topics", topicHandler.CreateTopic)
 		r.Post("/topics/{topicID}/posts", postHandler.CreatePost)
+		r.Post("/posts/{postID}/comments", commentHandler.CreateComment)
 	})
 
 	return r

@@ -8,7 +8,7 @@ CREATE TABLE Posts (
     created_at TIMESTAMP(0) WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP(0) WITH TIME ZONE,
     -- Moderation fields
-    status TEXT DEFAULT 'active',
+    status TEXT DEFAULT 'active' NOT NULL CHECK (status IN ('active', 'removed', 'flagged')),
     removed_at TIMESTAMP(0) WITH TIME ZONE,
     removed_by BIGINT REFERENCES users(user_id),
     removal_reason TEXT
