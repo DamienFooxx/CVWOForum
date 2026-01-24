@@ -48,52 +48,60 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   }, [fetchTopics]);
 
   return (
-      <main className="min-h-screen bg-background pb-20">
+      <main className="min-h-screen bg-background pb-20 m-10">
         {/* Top Section */}
-        <section className="relative overflow-hidden pt-16 md:pb-12">
-          <div className="container px-4 mx-auto text-center relative z-10">
-            {/* Main Heading */}
-            <h1 className="text-4xl md:text-6xl font-medium tracking-tight text-foreground mb-6 max-w-3xl mx-auto">
+        <section className="relative overflow-hidden pt-24 md:pb-12">
+          <div className="w-full max-w-[1800px] mx-auto px-4 md:px-6 text-center relative z-10">
+            <h1 className="text-xl md:text-6xl font-medium tracking-tight text-foreground mb-6 max-w-3xl mx-auto">
               Welcome to <span className="text-primary">DAMIEN'S</span> forum.
             </h1>
           </div>
         </section>
 
         {/* Topics Grid Section */}
-        <section className="container px-4 md:px-8 mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-medium tracking-tight">Explore Topics</h2>
-            {/* Search */}
-            <div className="hidden md:flex items-left relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <input
-                  type="text"
-                  placeholder="Search"
-                  className="h-9 w-140 rounded-xl border border-input bg-input-background px-9 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
+        <section className="w-full max-w-[1600px] mx-auto px-4 md:px-6">
+          {/* Header Grid: 3 Columns for centering */}
+          <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 mb-8">
+            {/* Left: Title */}
+            <div className="flex justify-start">
+                <h2 className="text-4xl font-medium tracking-tight">Explore Topics</h2>
             </div>
             
-            <div className="relative group">
-              <button 
-                onClick={() => isAuthenticated && setIsCreateModalOpen(true)}
-                disabled={!isAuthenticated}
-                className={cn(
-                  "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-sm",
-                  isAuthenticated 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md" 
-                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
-                )}
-              >
-                <Plus className="h-4 w-4" />
-                New Topic
-              </button>
-              
-              {/* Tooltip for non-authenticated users */}
-              {!isAuthenticated && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Sign in to create a topic
+            {/* Center: Search */}
+            <div className="hidden md:flex justify-center">
+                <div className="relative w-full max-w-l">
+                    <Search className="absolute left-2 top-4 h-6 w-6 text-muted-foreground" />
+                    <input
+                        type="text"
+                        placeholder="Search topics..."
+                        className="w-full h-14 pl-9 pr-4 rounded-xl border border-input bg-input-background text-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
                 </div>
-              )}
+            </div>
+            
+            {/* Right: Button */}
+            <div className="flex justify-end">
+                <div className="relative group">
+                    <button 
+                        onClick={() => isAuthenticated && setIsCreateModalOpen(true)}
+                        disabled={!isAuthenticated}
+                        className={cn(
+                        "inline-flex items-center gap-2 px-5 py-2 rounded-xl text-md font-medium transition-all shadow-md",
+                        isAuthenticated 
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md" 
+                            : "bg-muted text-muted-foreground cursor-not-allowed opacity-70"
+                        )}
+                    >
+                        <Plus className="h-6 w-6" />
+                        New Topic
+                    </button>
+                    
+                    {!isAuthenticated && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Sign in to create a topic
+                        </div>
+                    )}
+                </div>
             </div>
           </div>
           {/* 3. Conditional Rendering */}
@@ -115,8 +123,8 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                 <p className="text-sm mt-2">Be the first to start a topic!</p>
               </div>
           ) : (
-              // SUCCESS STATE
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              // SUCESS STATE
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {topics.map((topic) => (
                     <TopicCard
                         key={topic.topic_id}
