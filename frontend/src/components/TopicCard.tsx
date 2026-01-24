@@ -1,4 +1,4 @@
-import { Clock, ArrowRight } from 'lucide-react';
+import { MessageSquare, Clock, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { Topic } from '../types';
 
@@ -9,7 +9,7 @@ interface TopicCardProps {
 
 export function TopicCard({ topic, onClick }: TopicCardProps) {
     // Destructure using new property names
-    const { topic_id, name, description, created_at } = topic;
+    const { topic_id, name, description, post_count, created_at } = topic;
 
     return (
         <div
@@ -34,6 +34,11 @@ export function TopicCard({ topic, onClick }: TopicCardProps) {
             </div>
 
             <div className="mt-6 flex items-center gap-4 text-xs font-medium text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    {/* Fallback to 0 if post_count is undefined */}
+                    <span>{post_count || 0} posts</span>
+                </div>
                 <div className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5" />
                     {/* Format date simply */}
