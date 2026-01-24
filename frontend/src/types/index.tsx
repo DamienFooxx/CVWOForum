@@ -1,5 +1,10 @@
 export type PageType = 'home' | 'topics';
 
+export interface APIErrorResponse {
+    message?: string;
+    error?: string;
+}
+
 export interface NavigationItem {
     id: PageType;
     label: string;
