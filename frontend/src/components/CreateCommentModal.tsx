@@ -91,7 +91,7 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
               value={body}
               onChange={(e) => setBody(e.target.value)}
               className="w-full h-32 p-3 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-              placeholder="What are your thoughts?"
+              placeholder="Damn this forum is sugoi"
               required
               maxLength={1000}
               autoFocus

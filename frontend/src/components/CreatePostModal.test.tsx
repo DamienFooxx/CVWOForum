@@ -27,8 +27,8 @@ describe('CreatePostModal', () => {
 
     render(<CreatePostModal isOpen={true} onClose={handleClose} onPostCreated={handleCreated} topicId={topicId} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Give your post a clear title'), { target: { value: 'My Post' } });
-    fireEvent.change(screen.getByPlaceholderText('Share your thoughts...'), { target: { value: 'Content' } });
+    fireEvent.change(screen.getByPlaceholderText('SOC IS DA BEST'), { target: { value: 'My Post' } });
+    fireEvent.change(screen.getByPlaceholderText('Share your intrusive thoughts...'), { target: { value: 'Content' } });
     
     fireEvent.click(screen.getByRole('button', { name: /post/i }));
 

@@ -32,7 +32,7 @@ describe('CreateCommentModal', () => {
 
     render(<CreateCommentModal isOpen={true} onClose={handleClose} onCommentCreated={handleCreated} postId={postId} parentId={99} />);
 
-    fireEvent.change(screen.getByPlaceholderText('What are your thoughts?'), { target: { value: 'Nice!' } });
+    fireEvent.change(screen.getByPlaceholderText('Damn this forum is sugoi'), { target: { value: 'Nice!' } });
     fireEvent.click(screen.getByRole('button', { name: /reply/i }));
 
     await waitFor(() => {

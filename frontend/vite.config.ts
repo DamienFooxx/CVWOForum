@@ -3,8 +3,6 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
-// @ts-ignore
-// @ts-ignore
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -63,5 +61,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/**'], // Exclude Playwright tests
   },
 });
