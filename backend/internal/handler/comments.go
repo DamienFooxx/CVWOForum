@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/DamienFooxx/CVWOForum/internal/auth"
 	"github.com/DamienFooxx/CVWOForum/internal/database"
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -162,4 +164,39 @@ func (h *CommentHandler) ListComments(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+// DeleteComment DELETE /comments/{commentID}
+func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	// Authentication
+	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
+	if !ok {
+		http.Error(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	// Get CommentID
+	commentIDStr := chi.URLParam(r, "commentID")
+	commentID, err := strconv.ParseInt(commentIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid Comment ID", http.StatusBadRequest)
+		return
+	}
+
+	// Delete comment (soft delete)
+	_, err = h.q.DeleteComment(r.Context(), database.DeleteCommentParams{
+		CommentID:   commentID,
+		CommentedBy: userID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Comment not found or you are not the creator", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to delete comment: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Comment deleted successfully"))
 }

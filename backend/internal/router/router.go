@@ -45,8 +45,13 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.AuthMiddleware)
 		r.Post("/topics", topicHandler.CreateTopic)
+		r.Delete("/topics/{topicID}", topicHandler.DeleteTopic)
+
 		r.Post("/topics/{topicID}/posts", postHandler.CreatePost)
+		r.Delete("/posts/{postID}", postHandler.DeletePost)
+
 		r.Post("/posts/{postID}/comments", commentHandler.CreateComment)
+		r.Delete("/comments/{commentID}", commentHandler.DeleteComment)
 	})
 
 	return r

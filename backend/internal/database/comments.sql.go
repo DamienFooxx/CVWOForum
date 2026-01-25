@@ -54,6 +54,26 @@ func (q *Queries) CreateComment(ctx context.Context, arg CreateCommentParams) (C
 	return i, err
 }
 
+const deleteComment = `-- name: DeleteComment :one
+UPDATE comments
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE comment_id = $1 AND commented_by = $3
+RETURNING comment_id
+`
+
+type DeleteCommentParams struct {
+	CommentID   int64
+	RemovedBy   pgtype.Int8
+	CommentedBy int64
+}
+
+func (q *Queries) DeleteComment(ctx context.Context, arg DeleteCommentParams) (int64, error) {
+	row := q.db.QueryRow(ctx, deleteComment, arg.CommentID, arg.RemovedBy, arg.CommentedBy)
+	var comment_id int64
+	err := row.Scan(&comment_id)
+	return comment_id, err
+}
+
 const getComment = `-- name: GetComment :one
 SELECT comment_id, post_id, commented_by, parent_id, body, created_at, edited_at, status
 FROM comments

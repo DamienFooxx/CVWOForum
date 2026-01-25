@@ -30,7 +30,7 @@ type CreateTopicRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
-	PostCount   pgtype.Int8
+	PostCount   int64
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (CreateTopicRow, error) {
@@ -59,6 +59,26 @@ func (q *Queries) DecrementPostCount(ctx context.Context, topicID int64) error {
 	return err
 }
 
+const deleteTopic = `-- name: DeleteTopic :one
+UPDATE topics
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE topic_id = $1 AND created_by = $3
+RETURNING topic_id
+`
+
+type DeleteTopicParams struct {
+	TopicID   int64
+	RemovedBy pgtype.Int8
+	CreatedBy int64
+}
+
+func (q *Queries) DeleteTopic(ctx context.Context, arg DeleteTopicParams) (int64, error) {
+	row := q.db.QueryRow(ctx, deleteTopic, arg.TopicID, arg.RemovedBy, arg.CreatedBy)
+	var topic_id int64
+	err := row.Scan(&topic_id)
+	return topic_id, err
+}
+
 const getTopic = `-- name: GetTopic :one
 SELECT topic_id, created_by, name, description, created_at, status, post_count
 FROM topics
@@ -72,7 +92,7 @@ type GetTopicRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
-	PostCount   pgtype.Int8
+	PostCount   int64
 }
 
 func (q *Queries) GetTopic(ctx context.Context, topicID int64) (GetTopicRow, error) {
@@ -115,7 +135,7 @@ type ListTopicsRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
-	PostCount   pgtype.Int8
+	PostCount   int64
 }
 
 func (q *Queries) ListTopics(ctx context.Context) ([]ListTopicsRow, error) {
@@ -162,7 +182,7 @@ type SearchTopicsRow struct {
 	Description string
 	CreatedAt   pgtype.Timestamptz
 	Status      string
-	PostCount   pgtype.Int8
+	PostCount   int64
 }
 
 func (q *Queries) SearchTopics(ctx context.Context, dollar_1 pgtype.Text) ([]SearchTopicsRow, error) {
