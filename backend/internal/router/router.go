@@ -12,6 +12,9 @@ func NewRouter(queries *database.Queries) *chi.Mux {
 	// Create the router instance with r var name
 	r := chi.NewRouter()
 
+	// Use the CORS middleware
+	r.Use(middleware.CorsMiddleware())
+
 	// Initialise handlers
 	userHandler := handler.NewUserHandler(queries)
 	topicHandler := handler.NewTopicHandler(queries)

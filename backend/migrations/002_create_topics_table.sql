@@ -10,7 +10,8 @@ CREATE TABLE Topics (
     status TEXT DEFAULT 'active' NOT NULL CHECK (status IN ('active', 'removed', 'flagged')),
     removed_at TIMESTAMP(0) WITH TIME ZONE,
     removed_by BIGINT REFERENCES users(user_id),
-    removal_reason TEXT
+    removal_reason TEXT,
+    post_count BIGINT DEFAULT 0 NOT NULL
 );
 
 CREATE INDEX idx_topics_created_at ON topics(created_at DESC); -- Index for faster queries
