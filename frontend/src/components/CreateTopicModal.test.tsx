@@ -55,7 +55,7 @@ describe('CreateTopicModal', () => {
   it('shows error message on failure', async () => {
     (global.fetch as any).mockResolvedValueOnce({
       ok: false,
-      text: async () => JSON.stringify({ message: 'Name already exists' }),
+      json: async () => ({ message: 'Name already exists' }),
     });
 
     render(<CreateTopicModal isOpen={true} onClose={handleClose} onTopicCreated={handleCreated} />);

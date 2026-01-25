@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Port        string
 	DatabaseURL string
+	FrontendURL string
 }
 
 // Load the env vars.
@@ -29,8 +30,11 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DATABASE_URL environment variable not set")
 	}
 
+	frontendURL := os.Getenv("FRONTEND_URL")
+
 	return &Config{
 		Port:        port,
 		DatabaseURL: databaseURL,
+		FrontendURL: frontendURL,
 	}, nil
 }

@@ -5,6 +5,7 @@ import { CreateCommentModal } from '../components/CreateCommentModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { cn } from '../lib/utils';
 import { BUTTONS, TOOLTIPS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface PostDetailPageProps {
   postId: string;
@@ -32,21 +33,14 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [postRes, commentsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}`),
-        fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`)
+      const [postData, commentsData] = await Promise.all([
+        api.get(`/posts/${postId}`),
+        api.get(`/posts/${postId}/comments`)
       ]);
 
-      if (postRes.ok) {
-        const postData = await postRes.json() as Post;
-        setPost(postData);
-      }
-
-      if (commentsRes.ok) {
-        const flatComments = await commentsRes.json() as Comment[];
-        const tree = buildCommentTree(flatComments);
-        setComments(tree);
-      }
+      setPost(postData as Post);
+      const tree = buildCommentTree(commentsData as Comment[]);
+      setComments(tree);
     } catch (error) {
       console.error("Failed to fetch post details", error);
     } finally {
@@ -73,18 +67,9 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/comments/${commentToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      await api.delete(`/comments/${commentToDelete}`, localStorage.getItem('token') || undefined);
 
-      if (!response.ok) {
-        throw new Error('Failed to delete comment');
-      }
-
-      fetchData();
+      await fetchData(); // Wait for data to refresh
       setIsDeleteModalOpen(false);
       setCommentToDelete(null);
     } catch (error) {

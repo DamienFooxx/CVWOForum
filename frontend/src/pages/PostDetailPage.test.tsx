@@ -125,7 +125,7 @@ describe('PostDetailPage', () => {
 
     // Mock delete success and refresh
     fetchMock
-      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // Delete response
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost }) // Refresh post
       .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh comments
 

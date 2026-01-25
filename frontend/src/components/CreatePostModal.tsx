@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -30,19 +31,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated, topicId }: Cre
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics/${topicId}/posts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, body }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || 'Failed to create post');
-      }
+      await api.post(`/topics/${topicId}/posts`, { title, body }, token);
 
       // Success!
       onPostCreated();

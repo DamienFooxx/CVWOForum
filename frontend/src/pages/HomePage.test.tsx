@@ -119,7 +119,7 @@ describe('HomePage', () => {
 
     // Mock delete success and refresh
     fetchMock
-      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // Delete response
       .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh response
 
     // Confirm delete (the button inside the modal)

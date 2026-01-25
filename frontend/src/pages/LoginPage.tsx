@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, ArrowRight } from 'lucide-react';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface LoginPageProps {
   onLoginSuccess: (token: string, username: string, userId: number) => void;
@@ -18,18 +19,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || 'Invalid credentials');
-      }
-
-      const data = await response.json();
+      const data = await api.post('/login', { username });
       onLoginSuccess(data.token, data.username, data.user_id);
       
     } catch (err) {
