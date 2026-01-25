@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { Navbar } from './Navigationbar';
+import { Navbar } from './NavigationBar.tsx';
 import { BUTTONS } from '../constants/strings';
 
 describe('Navbar', () => {

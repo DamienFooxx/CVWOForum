@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from './components/Navigationbar';
+import { Navbar } from './components/NavigationBar.tsx';
 import { HomePage } from './pages/HomePage';
 import { TopicPage } from './pages/TopicPage';
 import { PostDetailPage } from './pages/PostDetailPage';
