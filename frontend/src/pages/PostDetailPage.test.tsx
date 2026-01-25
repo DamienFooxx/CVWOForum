@@ -1,11 +1,23 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PostDetailPage } from './PostDetailPage';
 import { BUTTONS, TOOLTIPS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
 global.alert = vi.fn();
+
+// Helper to render with router context
+const renderWithRouter = (ui: React.ReactNode, { route = '/topics/1/posts/1' } = {}) => {
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/topics/:topicId/posts/:postId" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
 describe('PostDetailPage', () => {
   const mockPost = {
@@ -47,7 +59,7 @@ describe('PostDetailPage', () => {
 
   it('renders loading state initially', () => {
     fetchMock.mockReturnValue(new Promise(() => {}));
-    render(<PostDetailPage postId="1" onBack={() => {}} />);
+    renderWithRouter(<PostDetailPage onBack={() => {}} />);
     expect(screen.getByText('Loading discussion...')).toBeInTheDocument();
   });
 
@@ -56,7 +68,7 @@ describe('PostDetailPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
       .mockResolvedValueOnce({ ok: true, json: async () => mockComments });
 
-    render(<PostDetailPage postId="1" onBack={() => {}} />);
+    renderWithRouter(<PostDetailPage onBack={() => {}} />);
 
     await waitFor(() => {
       expect(screen.queryByText('Loading discussion...')).not.toBeInTheDocument();
@@ -77,7 +89,7 @@ describe('PostDetailPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
       .mockResolvedValueOnce({ ok: true, json: async () => [] });
 
-    render(<PostDetailPage postId="1" onBack={() => {}} />);
+    renderWithRouter(<PostDetailPage onBack={() => {}} />);
 
     await waitFor(() => screen.getByText('Test Post'));
 
@@ -92,7 +104,7 @@ describe('PostDetailPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
       .mockResolvedValueOnce({ ok: true, json: async () => [] });
 
-    render(<PostDetailPage postId="1" onBack={() => {}} />);
+    renderWithRouter(<PostDetailPage onBack={() => {}} />);
 
     await waitFor(() => screen.getByText('Test Post'));
 
@@ -112,7 +124,7 @@ describe('PostDetailPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
       .mockResolvedValueOnce({ ok: true, json: async () => mockComments });
 
-    render(<PostDetailPage postId="1" onBack={() => {}} />);
+    renderWithRouter(<PostDetailPage onBack={() => {}} />);
 
     await waitFor(() => screen.getByText('Top level comment'));
 

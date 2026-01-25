@@ -1,10 +1,20 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { LoginPage } from './LoginPage';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
+
+// Helper to render with router context
+const renderWithRouter = (ui: React.ReactNode) => {
+  return render(
+    <MemoryRouter>
+      {ui}
+    </MemoryRouter>
+  );
+};
 
 describe('LoginPage', () => {
   const handleLoginSuccess = vi.fn();
@@ -15,7 +25,7 @@ describe('LoginPage', () => {
   });
 
   it('renders login form', () => {
-    render(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
+    renderWithRouter(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
     expect(screen.getByText('Welcome')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(PLACEHOLDERS.LOGIN_USERNAME)).toBeInTheDocument();
   });
@@ -26,7 +36,7 @@ describe('LoginPage', () => {
       json: async () => ({ token: 'fake-jwt', username: 'testuser', user_id: 123 }),
     });
 
-    render(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
+    renderWithRouter(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
 
     fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.LOGIN_USERNAME), { target: { value: 'testuser' } });
     fireEvent.click(screen.getByRole('button', { name: BUTTONS.CONTINUE }));
@@ -50,7 +60,7 @@ describe('LoginPage', () => {
       json: async () => ({ message: 'Invalid user' }),
     });
 
-    render(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
+    renderWithRouter(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
 
     fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.LOGIN_USERNAME), { target: { value: 'baduser' } });
     fireEvent.click(screen.getByRole('button', { name: BUTTONS.CONTINUE }));

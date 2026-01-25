@@ -1,11 +1,23 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { TopicPage } from './TopicPage';
 import { BUTTONS } from '../constants/strings';
 
 // Mock global fetch
 global.fetch = vi.fn();
 global.alert = vi.fn();
+
+// Helper to render with router context
+const renderWithRouter = (ui: React.ReactNode, { route = '/topics/1' } = {}) => {
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/topics/:topicId" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
 describe('TopicPage', () => {
   const mockTopic = {
@@ -45,7 +57,7 @@ describe('TopicPage', () => {
     // Mock fetch to never resolve immediately (or just return a promise)
     (global.fetch as any).mockReturnValue(new Promise(() => {}));
     
-    render(<TopicPage topicId="1" onBack={() => {}} onPostClick={() => {}} />);
+    renderWithRouter(<TopicPage onBack={() => {}} onPostClick={() => {}} />);
     expect(screen.getByText('Loading topic...')).toBeInTheDocument();
   });
 
@@ -61,7 +73,7 @@ describe('TopicPage', () => {
         json: async () => mockPosts,
       });
 
-    render(<TopicPage topicId="1" onBack={() => {}} onPostClick={() => {}} />);
+    renderWithRouter(<TopicPage onBack={() => {}} onPostClick={() => {}} />);
 
     // Wait for loading to disappear and content to appear
     await waitFor(() => {
@@ -84,7 +96,7 @@ describe('TopicPage', () => {
       json: async () => ({ error: 'Not found' })
     });
 
-    render(<TopicPage topicId="999" onBack={() => {}} onPostClick={() => {}} />);
+    renderWithRouter(<TopicPage onBack={() => {}} onPostClick={() => {}} />, { route: '/topics/999' });
 
     await waitFor(() => {
       expect(screen.getByText('Topic not found')).toBeInTheDocument();
@@ -98,7 +110,7 @@ describe('TopicPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => [] });
 
     const handleBack = vi.fn();
-    render(<TopicPage topicId="1" onBack={handleBack} onPostClick={() => {}} />);
+    renderWithRouter(<TopicPage onBack={handleBack} onPostClick={() => {}} />);
 
     await waitFor(() => screen.getByText('React Testing'));
 
@@ -114,7 +126,7 @@ describe('TopicPage', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => mockTopic })
       .mockResolvedValueOnce({ ok: true, json: async () => mockPosts });
 
-    render(<TopicPage topicId="1" onBack={() => {}} onPostClick={() => {}} />);
+    renderWithRouter(<TopicPage onBack={() => {}} onPostClick={() => {}} />);
 
     await waitFor(() => screen.getByText('Vitest is fast'));
 

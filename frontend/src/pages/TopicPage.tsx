@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Search } from 'lucide-react';
 import { PostCard } from '../components/PostCard';
 import { CreatePostModal } from '../components/CreatePostModal';
@@ -9,12 +10,12 @@ import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
 import { api } from '../lib/api';
 
 interface TopicPageProps {
-  topicId: string;
   onBack: () => void;
   onPostClick: (postId: string) => void;
 }
 
-export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
+export function TopicPage({ onBack, onPostClick }: TopicPageProps) {
+  const { topicId } = useParams<{ topicId: string }>();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
   const isAuthenticated = !!localStorage.getItem('token');
 
   const fetchData = useCallback(async (query: string = '') => {
+    if (!topicId) return;
     try {
       setLoading(true);
       
@@ -188,7 +190,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onPostCreated={handleRefresh}
-          topicId={topicId}
+          topicId={topicId || ''}
         />
 
         <ConfirmationModal

@@ -1,4 +1,5 @@
 import {useEffect, useState, useCallback} from "react";
+import { useNavigate } from 'react-router-dom';
 import {Plus, Search} from 'lucide-react';
 import { TopicCard } from '../components/TopicCard';
 import { CreateTopicModal } from '../components/CreateTopicModal';
@@ -8,11 +9,8 @@ import { cn } from '../lib/utils';
 import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
 import { api } from '../lib/api';
 
-interface HomePageProps {
-  onTopicClick: (topicId: string) => void;
-}
-
-export function HomePage({ onTopicClick }: HomePageProps) {
+export function HomePage() {
+  const navigate = useNavigate();
   // Set state for data, loading and errors
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,7 +145,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                 </div>
             </div>
           </div>
-          {/* 3. Conditional Rendering */}
+          {/* Conditional Rendering */}
           {loading ? (
               // Loading
               <div className="text-center py-20 text-muted-foreground animate-pulse">
@@ -176,7 +174,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                     <TopicCard
                         key={topic.topic_id}
                         topic={topic}
-                        onClick={onTopicClick}
+                        onClick={(topicId) => navigate(`/topics/${topicId}`)}
                         onDelete={confirmDeleteTopic}
                     />
                 ))}

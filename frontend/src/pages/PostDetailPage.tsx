@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, User as UserIcon, Clock, CornerDownRight, Trash2 } from 'lucide-react';
 import type { Post, Comment } from '../types';
 import { CreateCommentModal } from '../components/CreateCommentModal';
@@ -8,7 +9,6 @@ import { BUTTONS, TOOLTIPS } from '../constants/strings';
 import { api } from '../lib/api';
 
 interface PostDetailPageProps {
-  postId: string;
   onBack: () => void;
 }
 
@@ -16,7 +16,8 @@ interface CommentNode extends Comment {
   replies: CommentNode[];
 }
 
-export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
+export function PostDetailPage({ onBack }: PostDetailPageProps) {
+  const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<CommentNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,7 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
   const isAuthenticated = !!localStorage.getItem('token');
 
   const fetchData = useCallback(async () => {
+    if (!postId) return;
     try {
       setLoading(true);
       const [postData, commentsData] = await Promise.all([
@@ -165,7 +167,7 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
         isOpen={isReplyModalOpen}
         onClose={() => setIsReplyModalOpen(false)}
         onCommentCreated={fetchData}
-        postId={postId}
+        postId={postId || ''}
         parentId={replyParentId}
       />
 
