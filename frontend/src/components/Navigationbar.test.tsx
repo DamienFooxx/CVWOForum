@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Navbar } from './Navigationbar';
+import { BUTTONS } from '../constants/strings';
 
 describe('Navbar', () => {
   const handleNavigate = vi.fn();
@@ -18,7 +19,7 @@ describe('Navbar', () => {
       />
     );
 
-    expect(screen.getByText('Sign In')).toBeInTheDocument();
+    expect(screen.getByText(BUTTONS.SIGN_IN)).toBeInTheDocument();
     expect(screen.queryByTitle('Logout')).not.toBeInTheDocument();
   });
 
@@ -33,7 +34,7 @@ describe('Navbar', () => {
       />
     );
 
-    expect(screen.queryByText('Sign In')).not.toBeInTheDocument();
+    expect(screen.queryByText(BUTTONS.SIGN_IN)).not.toBeInTheDocument();
     expect(screen.getByLabelText('User Profile')).toBeInTheDocument();
     expect(screen.getByTitle('Logout')).toBeInTheDocument();
   });
@@ -49,7 +50,7 @@ describe('Navbar', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Sign In'));
+    fireEvent.click(screen.getByText(BUTTONS.SIGN_IN));
     expect(handleLogin).toHaveBeenCalled();
   });
 

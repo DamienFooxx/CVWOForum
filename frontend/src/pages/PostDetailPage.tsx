@@ -3,6 +3,7 @@ import { ArrowLeft, MessageSquare, User as UserIcon, Clock, CornerDownRight } fr
 import type { Post, Comment } from '../types';
 import { CreateCommentModal } from '../components/CreateCommentModal';
 import { cn } from '../lib/utils';
+import { BUTTONS, TOOLTIPS } from '../constants/strings';
 
 interface PostDetailPageProps {
   postId: string;
@@ -109,11 +110,11 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
                     disabled={!isAuthenticated}
                     className={cn("text-md font-medium", isAuthenticated ? "text-primary hover:text-primary/80" : "text-muted-foreground cursor-not-allowed opacity-70")}
                 >
-                    Reply
+                    {BUTTONS.POST_COMMENT}
                 </button>
                 {!isAuthenticated && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        Sign in to comment
+                        {TOOLTIPS.GUEST_COMMENT}
                     </div>
                 )}
             </div>
@@ -167,7 +168,7 @@ function CommentItem({ comment, onReply }: { comment: CommentNode; onReply: (par
             className="mt-3 text-s font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
         >
             <CornerDownRight className="h-3 w-3" />
-            Reply
+            {BUTTONS.REPLY}
         </button>
       </div>
 

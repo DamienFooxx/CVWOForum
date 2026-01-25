@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 interface CreateTopicModalProps {
   isOpen: boolean;
@@ -88,7 +89,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="e.g. I LOVE SOC"
+              placeholder={PLACEHOLDERS.CREATE_TOPIC_NAME}
               required
               maxLength={50}
             />
@@ -100,7 +101,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full h-24 p-3 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-              placeholder="What is this topic about?"
+              placeholder={PLACEHOLDERS.CREATE_TOPIC_DESC}
               required
               maxLength={200}
             />
@@ -112,7 +113,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Cancel
+              {BUTTONS.CANCEL}
             </button>
             <button
               type="submit"
@@ -120,7 +121,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
               className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Create Topic
+              {BUTTONS.CREATE_TOPIC}
             </button>
           </div>
         </form>

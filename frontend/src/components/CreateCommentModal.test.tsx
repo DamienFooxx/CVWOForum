@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CreateCommentModal } from './CreateCommentModal';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 global.fetch = vi.fn();
 
@@ -14,9 +15,9 @@ describe('CreateCommentModal', () => {
     localStorage.setItem('token', 'fake-token');
   });
 
-  it('renders "Post a Comment" for top-level comments', () => {
+  it('renders "Reply" for top-level comments', () => {
     render(<CreateCommentModal isOpen={true} onClose={handleClose} onCommentCreated={handleCreated} postId={postId} parentId={null} />);
-    expect(screen.getByText('Post a Comment')).toBeInTheDocument();
+    expect(screen.getByText(BUTTONS.POST_COMMENT)).toBeInTheDocument();
   });
 
   it('renders "Reply to Comment" for nested replies', () => {
@@ -32,8 +33,8 @@ describe('CreateCommentModal', () => {
 
     render(<CreateCommentModal isOpen={true} onClose={handleClose} onCommentCreated={handleCreated} postId={postId} parentId={99} />);
 
-    fireEvent.change(screen.getByPlaceholderText('Damn this forum is sugoi'), { target: { value: 'Nice!' } });
-    fireEvent.click(screen.getByRole('button', { name: /reply/i }));
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_COMMENT_BODY), { target: { value: 'Nice!' } });
+    fireEvent.click(screen.getByRole('button', { name: BUTTONS.REPLY }));
 
     await waitFor(() => {
       expect(handleCreated).toHaveBeenCalled();

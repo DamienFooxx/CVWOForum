@@ -4,6 +4,7 @@ import { TopicCard } from '../components/TopicCard';
 import { CreateTopicModal } from '../components/CreateTopicModal';
 import type { Topic, APIErrorResponse } from '../types';
 import { cn } from '../lib/utils';
+import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
 
 interface HomePageProps {
   onTopicClick: (topicId: string) => void;
@@ -35,7 +36,6 @@ export function HomePage({ onTopicClick }: HomePageProps) {
       }
 
       const data = await response.json() as Topic[];
-      console.log("Topic data", data);
       setTopics(data);
     } catch (err) {
       console.error(err);
@@ -91,7 +91,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                     <Search className="absolute left-2 top-4 h-6 w-6 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder="Search topics..."
+                        placeholder={PLACEHOLDERS.SEARCH_TOPICS}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-14 pl-9 pr-4 rounded-xl border border-input bg-input-background text-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -113,12 +113,12 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                         )}
                     >
                         <Plus className="h-6 w-6" />
-                        New Topic
+                        {BUTTONS.NEW_TOPIC}
                     </button>
                     
                     {!isAuthenticated && (
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        Sign in to create a topic
+                        {TOOLTIPS.GUEST_TOPIC}
                         </div>
                     )}
                 </div>

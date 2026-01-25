@@ -1,30 +1,40 @@
 DB_URL="postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable"
 
-# Run all migrations up
+.PHONY: migrate-up migrate-down db-reset gen test-backend test-frontend test-e2e lint run-backend run-frontend
+
+# --- Database ---
 migrate-up:
 	cd backend/migrations && goose postgres $(DB_URL) up
 
-# Rollback all migrations (down to 0)
 migrate-down:
 	cd backend/migrations && goose postgres $(DB_URL) down-to 0
 
-# Reset DB: Down to 0, then Up
 db-reset: migrate-down migrate-up
 
-# Generate sqlc code
+# --- Code Gen ---
 gen:
 	cd backend && sqlc generate
 
-# Run tests
-test:
+# --- Testing ---
+test-backend:
 	cd backend && go test -v ./tests/...
 
-.PHONY: migrate-up migrate-down db-reset gen test
+test-frontend:
+	cd frontend && npx vitest
 
-# Run linter
+test-e2e:
+	# Assumes servers are already running, or relies on Playwright config to start them
+	cd frontend && npx playwright test
+
+# --- Linting ---
 lint:
 	cd backend && golangci-lint run
 
-# Run Server
-run: 
+# --- Running ---
+# Run backend only
+run-backend:
 	cd backend && go run ./cmd/server/main.go
+
+# Run frontend only
+run-frontend:
+	cd frontend && npm run dev

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CreateTopicModal } from './CreateTopicModal';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 global.fetch = vi.fn();
 
@@ -21,7 +22,7 @@ describe('CreateTopicModal', () => {
   it('renders form when isOpen is true', () => {
     render(<CreateTopicModal isOpen={true} onClose={handleClose} onTopicCreated={handleCreated} />);
     expect(screen.getByText('Create New Topic')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('e.g. I LOVE SOC')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_TOPIC_NAME)).toBeInTheDocument();
   });
 
   it('submits form successfully', async () => {
@@ -32,10 +33,10 @@ describe('CreateTopicModal', () => {
 
     render(<CreateTopicModal isOpen={true} onClose={handleClose} onTopicCreated={handleCreated} />);
 
-    fireEvent.change(screen.getByPlaceholderText('e.g. I LOVE SOC'), { target: { value: 'New Topic' } });
-    fireEvent.change(screen.getByPlaceholderText('What is this topic about?'), { target: { value: 'Description' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_TOPIC_NAME), { target: { value: 'New Topic' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_TOPIC_DESC), { target: { value: 'Description' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /create topic/i }));
+    fireEvent.click(screen.getByRole('button', { name: BUTTONS.CREATE_TOPIC }));
 
     await waitFor(() => {
       expect(handleCreated).toHaveBeenCalled();
@@ -59,10 +60,10 @@ describe('CreateTopicModal', () => {
 
     render(<CreateTopicModal isOpen={true} onClose={handleClose} onTopicCreated={handleCreated} />);
 
-    fireEvent.change(screen.getByPlaceholderText('e.g. I LOVE SOC'), { target: { value: 'Duplicate' } });
-    fireEvent.change(screen.getByPlaceholderText('What is this topic about?'), { target: { value: 'Desc' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_TOPIC_NAME), { target: { value: 'Duplicate' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_TOPIC_DESC), { target: { value: 'Desc' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /create topic/i }));
+    fireEvent.click(screen.getByRole('button', { name: BUTTONS.CREATE_TOPIC }));
 
     await waitFor(() => {
       expect(screen.getByText('Name already exists')).toBeInTheDocument();

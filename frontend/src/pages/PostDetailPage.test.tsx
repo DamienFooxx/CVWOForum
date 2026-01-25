@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PostDetailPage } from './PostDetailPage';
+import { BUTTONS, TOOLTIPS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
@@ -77,12 +78,12 @@ describe('PostDetailPage', () => {
 
     await waitFor(() => screen.getByText('Test Post'));
 
-    const button = screen.getByText('Reply');
+    const button = screen.getByText(BUTTONS.POST_COMMENT);
     expect(button).toBeDisabled();
-    expect(screen.getByText('Sign in to comment')).toBeInTheDocument();
+    expect(screen.getByText(TOOLTIPS.GUEST_COMMENT)).toBeInTheDocument();
   });
 
-  it('enables "Post a Comment" button when logged in', async () => {
+  it('enables "Reply" button when logged in', async () => {
     localStorage.setItem('token', 'fake-token');
     fetchMock
       .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
@@ -92,10 +93,11 @@ describe('PostDetailPage', () => {
 
     await waitFor(() => screen.getByText('Test Post'));
 
-    const button = screen.getByText('Reply');
+    const button = screen.getByText(BUTTONS.POST_COMMENT);
     expect(button).not.toBeDisabled();
     
     fireEvent.click(button);
-    expect(screen.getByText('Post a Comment')).toBeInTheDocument();
+    // Check for the modal header specifically
+    expect(screen.getByRole('heading', { name: BUTTONS.POST_COMMENT })).toBeInTheDocument();
   });
 });

@@ -9,8 +9,8 @@ const POST_TITLE = `Guest Test Post ${TIMESTAMP}`;
 test.describe('Guest User Restrictions', () => {
   
   test('Guest cannot create topics, posts, or comments', async ({ page, request }) => {
-    // --- SETUP VIA API ---
-    // 1. Login to get token
+    // SETUP VIA API
+    // Login to get token
     const loginRes = await request.post('http://localhost:8080/login', {
         data: { username: USERNAME }
     });
@@ -18,7 +18,7 @@ test.describe('Guest User Restrictions', () => {
     const loginData = await loginRes.json();
     const token = loginData.token;
 
-    // 2. Create Topic
+    // Create Topic
     const topicRes = await request.post('http://localhost:8080/topics', {
         headers: { 'Authorization': `Bearer ${token}` },
         data: { name: TOPIC_NAME, description: 'Setup for guest test' }
@@ -27,7 +27,7 @@ test.describe('Guest User Restrictions', () => {
     const topicData = await topicRes.json();
     const topicId = topicData.topic_id;
 
-    // 3. Create Post (so we can test comment restriction)
+    // Create Post
     const postRes = await request.post(`http://localhost:8080/topics/${topicId}/posts`, {
         headers: { 'Authorization': `Bearer ${token}` },
         data: { title: POST_TITLE, body: 'Content for guest test' }
@@ -35,8 +35,8 @@ test.describe('Guest User Restrictions', () => {
     expect(postRes.ok()).toBeTruthy();
 
 
-    // --- TEST AS GUEST ---
-    // 1. Go to Home Page
+    // TEST AS GUEST
+    // Go to Home Page
     await page.goto('/');
     
     // Check New Topic button
@@ -45,7 +45,7 @@ test.describe('Guest User Restrictions', () => {
     await newTopicBtn.hover();
     await expect(page.getByText(TOOLTIPS.GUEST_TOPIC)).toBeVisible();
 
-    // 2. Go to Topic Page
+    // Go to Topic Page
     await page.getByText(TOPIC_NAME).click();
     
     // Check New Post button
@@ -54,7 +54,7 @@ test.describe('Guest User Restrictions', () => {
     await newPostBtn.hover();
     await expect(page.getByText(TOOLTIPS.GUEST_POST)).toBeVisible();
 
-    // 3. Go to Post Page
+    // Go to Post Page
     await page.getByText(POST_TITLE).click();
 
     // Check Post Comment button

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CreatePostModal } from './CreatePostModal';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 global.fetch = vi.fn();
 
@@ -27,10 +28,10 @@ describe('CreatePostModal', () => {
 
     render(<CreatePostModal isOpen={true} onClose={handleClose} onPostCreated={handleCreated} topicId={topicId} />);
 
-    fireEvent.change(screen.getByPlaceholderText('SOC IS DA BEST'), { target: { value: 'My Post' } });
-    fireEvent.change(screen.getByPlaceholderText('Share your intrusive thoughts...'), { target: { value: 'Content' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_POST_TITLE), { target: { value: 'My Post' } });
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDERS.CREATE_POST_BODY), { target: { value: 'Content' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /post/i }));
+    fireEvent.click(screen.getByRole('button', { name: BUTTONS.POST }));
 
     await waitFor(() => {
       expect(handleCreated).toHaveBeenCalled();

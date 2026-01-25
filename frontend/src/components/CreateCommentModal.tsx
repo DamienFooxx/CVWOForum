@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 interface CreateCommentModalProps {
   isOpen: boolean;
@@ -68,7 +69,7 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-secondary/20">
           <h2 className="text-lg font-semibold text-foreground">
-            {parentId ? 'Reply to Comment' : 'Post a Comment'}
+            {parentId ? 'Reply to Comment' : BUTTONS.POST_COMMENT}
           </h2>
           <button 
             onClick={onClose}
@@ -91,7 +92,7 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
               value={body}
               onChange={(e) => setBody(e.target.value)}
               className="w-full h-32 p-3 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-              placeholder="Damn this forum is sugoi"
+              placeholder={PLACEHOLDERS.CREATE_COMMENT_BODY}
               required
               maxLength={1000}
               autoFocus
@@ -104,7 +105,7 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Cancel
+              {BUTTONS.CANCEL}
             </button>
             <button
               type="submit"
@@ -112,7 +113,7 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
               className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Reply
+              {BUTTONS.REPLY}
             </button>
           </div>
         </form>

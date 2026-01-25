@@ -1,6 +1,7 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { HomePage } from './HomePage';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
@@ -55,7 +56,7 @@ describe('HomePage', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     // Type in search
-    const input = screen.getByPlaceholderText('Search topics...');
+    const input = screen.getByPlaceholderText(PLACEHOLDERS.SEARCH_TOPICS);
     fireEvent.change(input, { target: { value: 'search query' } });
 
     // Should not call immediately (debounce)
@@ -77,7 +78,7 @@ describe('HomePage', () => {
     const { unmount } = render(<HomePage onTopicClick={() => {}} />);
     await waitFor(() => screen.getByText('Explore Topics'));
     
-    const button = screen.getByRole('button', { name: /new topic/i });
+    const button = screen.getByRole('button', { name: BUTTONS.NEW_TOPIC });
     expect(button).toBeDisabled();
     
     unmount();
@@ -87,7 +88,7 @@ describe('HomePage', () => {
     render(<HomePage onTopicClick={() => {}} />);
     await waitFor(() => screen.getByText('Explore Topics'));
 
-    const enabledButton = screen.getByRole('button', { name: /new topic/i });
+    const enabledButton = screen.getByRole('button', { name: BUTTONS.NEW_TOPIC });
     expect(enabledButton).not.toBeDisabled();
   });
 });

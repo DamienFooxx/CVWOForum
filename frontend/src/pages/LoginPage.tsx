@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, ArrowRight } from 'lucide-react';
+import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 interface LoginPageProps {
   onLoginSuccess: (token: string, username: string) => void;
@@ -68,7 +69,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full h-10 pl-9 pr-4 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                placeholder="e.g. soc_student"
+                placeholder={PLACEHOLDERS.LOGIN_USERNAME}
                 required
                 autoFocus
               />
@@ -80,7 +81,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
             disabled={loading}
             className="w-full h-10 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
-            {loading ? 'Connecting...' : 'Continue'}
+            {loading ? 'Connecting...' : BUTTONS.CONTINUE}
             {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>

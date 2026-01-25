@@ -4,6 +4,7 @@ import { PostCard } from '../components/PostCard';
 import { CreatePostModal } from '../components/CreatePostModal';
 import type { Topic, Post } from '../types';
 import { cn } from '../lib/utils';
+import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
 
 interface TopicPageProps {
   topicId: string;
@@ -107,7 +108,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <input
                   type="text"
-                  placeholder="Search Posts..."
+                  placeholder={PLACEHOLDERS.SEARCH_POSTS}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-10 pl-9 pr-4 rounded-xl border border-input bg-input-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -126,12 +127,12 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
                 )}
               >
                 <Plus className="h-4 w-4" />
-                New Post
+                {BUTTONS.NEW_POST}
               </button>
               
               {!isAuthenticated && (
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  Sign in to create a post
+                  {TOOLTIPS.GUEST_POST}
                 </div>
               )}
             </div>
