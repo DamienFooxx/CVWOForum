@@ -2,6 +2,7 @@ import {useEffect, useState, useCallback} from "react";
 import {Plus, Search} from 'lucide-react';
 import { TopicCard } from '../components/TopicCard';
 import { CreateTopicModal } from '../components/CreateTopicModal';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import type { Topic, APIErrorResponse } from '../types';
 import { cn } from '../lib/utils';
 import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
@@ -17,6 +18,11 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Check if user is logged in
   const isAuthenticated = !!localStorage.getItem('token');
@@ -64,6 +70,38 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   const handleRefresh = () => {
     fetchTopics(searchQuery);
   }
+
+  const confirmDeleteTopic = (topicId: string) => {
+    setTopicToDelete(topicId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteTopic = async () => {
+    if (!topicToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics/${topicToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete topic');
+      }
+
+      handleRefresh();
+      setIsDeleteModalOpen(false);
+      setTopicToDelete(null);
+    } catch (error) {
+      console.error('Error deleting topic:', error);
+      alert('Failed to delete topic');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
       <main className="min-h-screen bg-background pb-20 m-10">
@@ -154,6 +192,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
                         key={topic.topic_id}
                         topic={topic}
                         onClick={onTopicClick}
+                        onDelete={confirmDeleteTopic}
                     />
                 ))}
               </div>
@@ -164,6 +203,15 @@ export function HomePage({ onTopicClick }: HomePageProps) {
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onTopicCreated={handleRefresh}
+        />
+
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeleteTopic}
+          title="Delete Topic"
+          message="Are you sure you want to delete this topic? This action cannot be undone."
+          isLoading={isDeleting}
         />
       </main>
   );

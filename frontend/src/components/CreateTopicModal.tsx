@@ -39,8 +39,16 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || 'Failed to create topic');
+        const text = await response.text();
+        let errorMessage = 'Failed to create topic';
+        try {
+            const data = JSON.parse(text);
+            errorMessage = data?.message || data?.error || errorMessage;
+        } catch (e) {
+             // If JSON parse failed, use text if available
+             errorMessage = text || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       // Success

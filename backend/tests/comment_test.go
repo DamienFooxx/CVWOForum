@@ -28,12 +28,12 @@ func TestComments(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
-		var resp map[string]string
+		var resp map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &resp)
 		if err != nil {
 			return ""
 		}
-		return resp["token"]
+		return resp["token"].(string)
 	}
 
 	createTopic := func(token, name, desc string) int64 {

@@ -288,6 +288,12 @@ func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if post is already deleted to prevent double decrement
+	if post.Status == "removed" {
+		http.Error(w, "Post already deleted", http.StatusBadRequest)
+		return
+	}
+
 	// Delete post (soft delete)
 	_, err = h.q.DeletePost(r.Context(), database.DeletePostParams{
 		PostID:    postID,

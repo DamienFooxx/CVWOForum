@@ -24,9 +24,10 @@ export default function App() {
     }
   }, []);
 
-  const handleLoginSuccess = (token: string, username: string) => {
+  const handleLoginSuccess = (token: string, username: string, userId: number) => {
     localStorage.setItem('token', token);
     localStorage.setItem('username', username);
+    localStorage.setItem('user_id', String(userId));
     setIsAuthenticated(true);
     setCurrentPage({ type: 'home' }); // Redirect to home after login
   };
@@ -34,6 +35,7 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
+    localStorage.removeItem('user_id');
     setIsAuthenticated(false);
     setCurrentPage({ type: 'home' });
   };

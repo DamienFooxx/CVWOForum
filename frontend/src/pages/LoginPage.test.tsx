@@ -23,7 +23,7 @@ describe('LoginPage', () => {
   it('submits username and calls onLoginSuccess', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ token: 'fake-jwt', username: 'testuser' }),
+      json: async () => ({ token: 'fake-jwt', username: 'testuser', user_id: 123 }),
     });
 
     render(<LoginPage onLoginSuccess={handleLoginSuccess} onNavigateToSignup={handleNavigateSignup} />);
@@ -32,7 +32,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: BUTTONS.CONTINUE }));
 
     await waitFor(() => {
-      expect(handleLoginSuccess).toHaveBeenCalledWith('fake-jwt', 'testuser');
+      expect(handleLoginSuccess).toHaveBeenCalledWith('fake-jwt', 'testuser', 123);
     });
 
     expect(fetchMock).toHaveBeenCalledWith(

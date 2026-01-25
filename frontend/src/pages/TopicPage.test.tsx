@@ -1,9 +1,11 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TopicPage } from './TopicPage';
+import { BUTTONS } from '../constants/strings';
 
 // Mock global fetch
 global.fetch = vi.fn();
+global.alert = vi.fn();
 
 describe('TopicPage', () => {
   const mockTopic = {
@@ -36,6 +38,7 @@ describe('TopicPage', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    localStorage.clear();
   });
 
   it('renders loading state initially', () => {
@@ -100,5 +103,45 @@ describe('TopicPage', () => {
 
     fireEvent.click(screen.getByText('Back to Home'));
     expect(handleBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles post deletion flow', async () => {
+    localStorage.setItem('token', 'fake-token');
+    localStorage.setItem('user_id', '5'); // Owner of post 101
+
+    (global.fetch as any)
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTopic })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPosts });
+
+    render(<TopicPage topicId="1" onBack={() => {}} onPostClick={() => {}} />);
+
+    await waitFor(() => screen.getByText('Vitest is fast'));
+
+    // Click delete on post 101
+    const deleteBtns = screen.getAllByTitle(BUTTONS.DELETE);
+    fireEvent.click(deleteBtns[0]);
+
+    // Modal should appear
+    expect(screen.getByText('Delete Post')).toBeInTheDocument();
+
+    // Mock delete success and refresh
+    (global.fetch as any)
+      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => mockTopic }) // Refresh topic
+      .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh posts
+
+    // Confirm delete (button inside modal)
+    const buttons = screen.getAllByRole('button', { name: BUTTONS.DELETE });
+    const confirmBtn = buttons.find(btn => !btn.hasAttribute('title'));
+    if (!confirmBtn) throw new Error("Confirm button not found");
+
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/posts/101'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
   });
 });

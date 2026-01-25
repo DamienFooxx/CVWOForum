@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/DamienFooxx/CVWOForum/internal/auth"
@@ -57,6 +58,10 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "unique constraint") || strings.Contains(err.Error(), "duplicate key") {
+			http.Error(w, "Topic name already exists", http.StatusConflict)
+			return
+		}
 		http.Error(w, "Failed to create topic: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -69,6 +74,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
 		PostCount   int64  `json:"post_count"`
+		CreatedBy   int64  `json:"created_by"`
 	}
 
 	// Construct Response
@@ -79,6 +85,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
 		PostCount:   0,
+		CreatedBy:   topic.CreatedBy,
 	}
 
 	// Return HTTP response
@@ -99,6 +106,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
 		PostCount   int64  `json:"post_count"`
+		CreatedBy   int64  `json:"created_by"`
 	}
 
 	response := []Response{}
@@ -117,6 +125,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
 				PostCount:   topic.PostCount,
+				CreatedBy:   topic.CreatedBy,
 			})
 		}
 	} else {
@@ -134,6 +143,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
 				PostCount:   topic.PostCount,
+				CreatedBy:   topic.CreatedBy,
 			})
 		}
 	}
@@ -173,6 +183,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
 		PostCount   int64  `json:"post_count"`
+		CreatedBy   int64  `json:"created_by"`
 	}
 
 	resp := Response{
@@ -182,6 +193,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
 		PostCount:   topic.PostCount,
+		CreatedBy:   topic.CreatedBy,
 	}
 
 	// Send Response

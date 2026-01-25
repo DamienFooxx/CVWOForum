@@ -23,6 +23,7 @@ export const BUTTONS = {
   POST_COMMENT: "Reply Post",
   REPLY: "Reply",
   CANCEL: "Cancel",
+  DELETE: "Delete",
 };
 
 export const TOOLTIPS = {

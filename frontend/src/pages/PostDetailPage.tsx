@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ArrowLeft, MessageSquare, User as UserIcon, Clock, CornerDownRight } from 'lucide-react';
+import { ArrowLeft, MessageSquare, User as UserIcon, Clock, CornerDownRight, Trash2 } from 'lucide-react';
 import type { Post, Comment } from '../types';
 import { CreateCommentModal } from '../components/CreateCommentModal';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { cn } from '../lib/utils';
 import { BUTTONS, TOOLTIPS } from '../constants/strings';
 
@@ -20,6 +21,11 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
   const [loading, setLoading] = useState(true);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [replyParentId, setReplyParentId] = useState<number | null>(null);
+
+  // Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isAuthenticated = !!localStorage.getItem('token');
 
@@ -55,6 +61,38 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
   const handleReplyClick = (parentId: number | null) => {
     setReplyParentId(parentId);
     setIsReplyModalOpen(true);
+  };
+
+  const confirmDeleteComment = (commentId: number) => {
+    setCommentToDelete(commentId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteComment = async () => {
+    if (!commentToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/comments/${commentToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete comment');
+      }
+
+      fetchData();
+      setIsDeleteModalOpen(false);
+      setCommentToDelete(null);
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Failed to delete comment');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (loading) return <div className="p-8 text-center animate-pulse">Loading discussion...</div>;
@@ -120,14 +158,19 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
             </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="text-xl leading-relaxed space-y-6">
           {comments.length === 0 ? (
             <div className="text-center py-12 bg-secondary/20 rounded-xl border border-dashed border-border">
               <p className="text-muted-foreground">No comments yet.</p>
             </div>
           ) : (
             comments.map(comment => (
-              <CommentItem key={comment.comment_id} comment={comment} onReply={handleReplyClick} />
+              <CommentItem 
+                key={comment.comment_id} 
+                comment={comment} 
+                onReply={handleReplyClick} 
+                onDelete={confirmDeleteComment}
+              />
             ))
           )}
         </div>
@@ -140,6 +183,15 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
         postId={postId}
         parentId={replyParentId}
       />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteComment}
+        title="Delete Comment"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        isLoading={isDeleting}
+      />
     </main>
   );
 }
@@ -147,41 +199,83 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
 // --- Helper Functions & Components ---
 
 // Recursive Component to render comments and replies
-function CommentItem({ comment, onReply }: { comment: CommentNode; onReply: (parentId: number) => void }) {
+function CommentItem({ comment, onReply, onDelete }: { comment: CommentNode; onReply: (parentId: number) => void; onDelete: (id: number) => void }) {
+  const currentUserId = localStorage.getItem('user_id');
+  const isOwner = currentUserId && String(comment.commented_by) === currentUserId;
+  const isDeleted = comment.status === 'removed';
+
+  // Filter out deleted replies that have no children themselves
+  const visibleReplies = comment.replies.filter(reply => {
+      if (reply.status !== 'removed') return true;
+      return hasVisibleDescendants(reply);
+  });
+
+  // If deleted and no visible replies, don't render anything
+  if (isDeleted && visibleReplies.length === 0) {
+    return null;
+  }
+
   return (
     <div className="group">
       {/* Comment Card */}
-      <div className="bg-card/50 p-4 rounded-xl border border-border/40 hover:border-primary/20 transition-colors">
+      <div className={cn(
+          "p-4 rounded-xl border transition-colors relative",
+          isDeleted 
+            ? "bg-secondary/10 border-border/20" 
+            : "bg-card/50 border-border/40 hover:border-primary/20"
+      )}>
         <div className="flex items-center gap-2 mb-2 text-md font-medium text-muted-foreground">
           <span className="font-medium text-foreground text-md">
             {/* Use username if available, fallback to ID */}
-            {comment.username || `User #${comment.commented_by}`}
+            {isDeleted ? "[deleted]" : (comment.username || `User #${comment.commented_by}`)}
           </span>
           <span>•</span>
           <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+          
+          {/* Delete Button for Owner */}
+          {isOwner && !isDeleted && (
+            <button
+                onClick={() => onDelete(comment.comment_id)}
+                className="ml-auto p-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                title={BUTTONS.DELETE}
+            >
+                <Trash2 className="h-5 w-5" />
+            </button>
+          )}
         </div>
-        <p className="text-md text-foreground/90 leading-relaxed">{comment.body}</p>
+        <p className={cn("text-md leading-relaxed", isDeleted ? "text-muted-foreground italic" : "text-foreground/90")}>
+            {isDeleted ? "This comment was deleted" : comment.body}
+        </p>
 
         {/* Reply Button */}
-        <button
-            onClick={() => onReply(comment.comment_id)}
-            className="mt-3 text-s font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
-        >
-            <CornerDownRight className="h-3 w-3" />
-            {BUTTONS.REPLY}
-        </button>
+        {!isDeleted && (
+            <button
+                onClick={() => onReply(comment.comment_id)}
+                className="mt-3 text-s font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
+            >
+                <CornerDownRight className="h-3 w-3" />
+                {BUTTONS.REPLY}
+            </button>
+        )}
       </div>
 
       {/* Render Replies (Nested Comments like Reddit */}
-      {comment.replies.length > 0 && (
+      {visibleReplies.length > 0 && (
         <div className="ml-6 mt-3 pl-4 border-l-2 border-border/40 space-y-3">
-          {comment.replies.map(reply => (
-            <CommentItem key={reply.comment_id} comment={reply} onReply={onReply} />
+          {visibleReplies.map(reply => (
+            <CommentItem key={reply.comment_id} comment={reply} onReply={onReply} onDelete={onDelete} />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+// Helper to check if a node has any non-deleted descendants
+function hasVisibleDescendants(node: CommentNode): boolean {
+    if (node.status !== 'removed') return true;
+    // If this node is removed, check its children
+    return node.replies.some(child => hasVisibleDescendants(child));
 }
 
 // Logic to convert flat list (from DB) to tree (for UI)
