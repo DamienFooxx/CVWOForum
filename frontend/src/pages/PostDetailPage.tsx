@@ -91,7 +91,7 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
         <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4 tracking-tight">
           {post.title}
         </h1>
-        <div className="prose prose-stone dark:prose-invert max-w-none text-foreground/90 leading-relaxed whitespace-pre-wrap">
+        <div className="text-xl prose prose-stone dark:prose-invert max-w-none text-foreground/90 leading-relaxed whitespace-pre-wrap">
           {post.body}
         </div>
       </article>
@@ -107,9 +107,9 @@ export function PostDetailPage({ postId, onBack }: PostDetailPageProps) {
                 <button 
                     onClick={() => isAuthenticated && handleReplyClick(null)}
                     disabled={!isAuthenticated}
-                    className={cn("text-sm font-medium", isAuthenticated ? "text-primary hover:text-primary/80" : "text-muted-foreground cursor-not-allowed opacity-70")}
+                    className={cn("text-md font-medium", isAuthenticated ? "text-primary hover:text-primary/80" : "text-muted-foreground cursor-not-allowed opacity-70")}
                 >
-                    Post a Comment
+                    Reply
                 </button>
                 {!isAuthenticated && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 px-2 py-1 bg-popover text-popover-foreground text-xs text-center rounded-md border border-border shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -151,20 +151,20 @@ function CommentItem({ comment, onReply }: { comment: CommentNode; onReply: (par
     <div className="group">
       {/* Comment Card */}
       <div className="bg-card/50 p-4 rounded-xl border border-border/40 hover:border-primary/20 transition-colors">
-        <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">
+        <div className="flex items-center gap-2 mb-2 text-md font-medium text-muted-foreground">
+          <span className="font-medium text-foreground text-md">
             {/* Use username if available, fallback to ID */}
             {comment.username || `User #${comment.commented_by}`}
           </span>
           <span>•</span>
           <span>{new Date(comment.created_at).toLocaleDateString()}</span>
         </div>
-        <p className="text-sm text-foreground/90 leading-relaxed">{comment.body}</p>
+        <p className="text-md text-foreground/90 leading-relaxed">{comment.body}</p>
 
         {/* Reply Button */}
         <button
             onClick={() => onReply(comment.comment_id)}
-            className="mt-3 text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
+            className="mt-3 text-s font-medium text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors opacity-0 group-hover:opacity-100"
         >
             <CornerDownRight className="h-3 w-3" />
             Reply
@@ -201,7 +201,7 @@ function buildCommentTree(flatComments: Comment[]): CommentNode[] {
       if (parent) {
         parent.replies.push(node);
       } else {
-        // Parent not found (maybe deleted?), treat as root or handle error
+        // Parent not found (e.g. deleted?), treat as root or handle error
         roots.push(node);
       }
     } else {
