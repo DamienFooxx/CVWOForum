@@ -31,3 +31,9 @@ WHERE topic_id = $1;
 UPDATE topics
 SET post_count = post_count - 1
 WHERE topic_id = $1;
+
+-- name: DeleteTopic :one
+UPDATE topics
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE topic_id = $1 AND created_by = $3
+RETURNING topic_id;

@@ -26,7 +26,7 @@ func SetupDB(t *testing.T) *pgxpool.Pool {
 
 // ClearDB truncates all tables to ensure a clean state
 func ClearDB(t *testing.T, db *pgxpool.Pool) {
-	_, err := db.Exec(context.Background(), "TRUNCATE users, topics CASCADE")
+	_, err := db.Exec(context.Background(), "TRUNCATE users, topics, posts, comments CASCADE")
 	if err != nil {
 		t.Fatalf("Failed to clear DB: %v", err)
 	}

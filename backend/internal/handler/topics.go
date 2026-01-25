@@ -68,7 +68,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
-        PostCount   int64  `json:"post_count"`
+		PostCount   int64  `json:"post_count"`
 	}
 
 	// Construct Response
@@ -78,7 +78,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
-        PostCount:   0,
+		PostCount:   0,
 	}
 
 	// Return HTTP response
@@ -98,7 +98,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
-        PostCount   int64  `json:"post_count"`
+		PostCount   int64  `json:"post_count"`
 	}
 
 	response := []Response{}
@@ -116,7 +116,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
-                PostCount:   topic.PostCount.Int64,
+				PostCount:   topic.PostCount,
 			})
 		}
 	} else {
@@ -133,7 +133,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
-                PostCount:   topic.PostCount.Int64,
+				PostCount:   topic.PostCount,
 			})
 		}
 	}
@@ -172,7 +172,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
-        PostCount   int64  `json:"post_count"`
+		PostCount   int64  `json:"post_count"`
 	}
 
 	resp := Response{
@@ -181,7 +181,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
-        PostCount:   topic.PostCount.Int64,
+		PostCount:   topic.PostCount,
 	}
 
 	// Send Response
@@ -189,4 +189,40 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		fmt.Printf("Failed to encode response: %v\n", err)
 	}
+}
+
+// DeleteTopic DELETE /topics/{topicID}
+func (h *TopicHandler) DeleteTopic(w http.ResponseWriter, r *http.Request) {
+	// Get UserID from Context
+	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Get TopicID
+	topicIDStr := chi.URLParam(r, "topicID")
+	topicID, err := strconv.ParseInt(topicIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid topicID", http.StatusBadRequest)
+		return
+	}
+
+	// Delete topic (soft delete)
+	_, err = h.q.DeleteTopic(r.Context(), database.DeleteTopicParams{
+		TopicID:   topicID,
+		RemovedBy: pgtype.Int8{Int64: userID, Valid: true},
+		CreatedBy: userID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Topic not found or you are not the creator", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to delete topic: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Topic deleted successfully"))
 }

@@ -54,6 +54,26 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreateP
 	return i, err
 }
 
+const deletePost = `-- name: DeletePost :one
+UPDATE posts
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE post_id = $1 AND created_by = $3
+RETURNING post_id
+`
+
+type DeletePostParams struct {
+	PostID    int64
+	RemovedBy pgtype.Int8
+	CreatedBy int64
+}
+
+func (q *Queries) DeletePost(ctx context.Context, arg DeletePostParams) (int64, error) {
+	row := q.db.QueryRow(ctx, deletePost, arg.PostID, arg.RemovedBy, arg.CreatedBy)
+	var post_id int64
+	err := row.Scan(&post_id)
+	return post_id, err
+}
+
 const getPost = `-- name: GetPost :one
 SELECT
     p.post_id,

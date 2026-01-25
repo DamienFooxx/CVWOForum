@@ -68,10 +68,10 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Increment post count
-    if err := h.q.IncrementPostCount(r.Context(), topicID); err != nil {
-        fmt.Printf("Failed to increment post count for topic %d: %v\n", topicID, err)
-    }
+	// Increment post count
+	if err := h.q.IncrementPostCount(r.Context(), topicID); err != nil {
+		fmt.Printf("Failed to increment post count for topic %d: %v\n", topicID, err)
+	}
 
 	// Create Response
 	type Response struct {
@@ -258,4 +258,56 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		fmt.Printf("Error encoding JSON: %v\n", err)
 	}
+}
+
+// DeletePost DELETE /posts/{postID}
+func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	// Get UserID
+	userID, ok := r.Context().Value(auth.UserIDKey).(int64)
+	if !ok {
+		http.Error(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	// Get PostID
+	postIDStr := chi.URLParam(r, "postID")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid Post ID", http.StatusBadRequest)
+		return
+	}
+
+	// Get Post to find TopicID for decrementing count
+	post, err := h.q.GetPost(r.Context(), postID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Post not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Failed to get post", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Delete post (soft delete)
+	_, err = h.q.DeletePost(r.Context(), database.DeletePostParams{
+		PostID:    postID,
+		RemovedBy: pgtype.Int8{Int64: userID, Valid: true},
+		CreatedBy: userID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Post not found or you are not the creator", http.StatusForbidden)
+			return
+		}
+		http.Error(w, "Failed to delete post: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Decrement post count
+	if err := h.q.DecrementPostCount(r.Context(), post.TopicID); err != nil {
+		fmt.Printf("Failed to decrement post count for topic %d: %v\n", post.TopicID, err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Post deleted successfully"))
 }

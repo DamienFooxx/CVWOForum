@@ -66,3 +66,9 @@ WHERE
   AND (p.title ILIKE '%' || $2 || '%' OR p.body ILIKE '%' || $2 || '%')
   AND p.status = 'active'
 ORDER BY p.created_at DESC;
+
+-- name: DeletePost :one
+UPDATE posts
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE post_id = $1 AND created_by = $3
+RETURNING post_id;
