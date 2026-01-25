@@ -6,8 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  GO_VERSION: '1.25.5'
+  NODE_VERSION: '22.19.0'
+
 jobs:
-  test:
+  # Backend Unit Tests
+  backend-test:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -30,7 +35,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.25.5'
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install Goose
         run: go install github.com/pressly/goose/v3/cmd/goose@latest
@@ -40,9 +45,107 @@ jobs:
           cd backend/migrations
           goose postgres "postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable" up
 
-      - name: Run Tests
+      - name: Run Backend Tests
+        env:
+          DATABASE_URL: "postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable"
+          PORT: ${{ secrets.PORT || '8080' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'secret' }}
         run: |
           cd backend
-          export DATABASE_URL="postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable"
-          export PORT=8080
           go test -v ./...
+
+  # 2. Frontend Unit Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Frontend Tests (Vitest)
+        run: |
+          cd frontend
+          npx vitest run
+
+  # 3. End-to-End Tests
+  e2e-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: damienfoo
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: cvwo_forum
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Backend
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Goose
+        run: go install github.com/pressly/goose/v3/cmd/goose@latest
+
+      - name: Run Migrations
+        run: |
+          cd backend/migrations
+          goose postgres "postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable" up
+
+      - name: Start Backend
+        env:
+          DATABASE_URL: "postgres://damienfoo:password@localhost:5432/cvwo_forum?sslmode=disable"
+          PORT: ${{ secrets.PORT || '8080' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'secret' }}
+        run: |
+          cd backend
+          go run cmd/server/main.go &
+          echo "Backend started in background"
+          sleep 5
+
+      # Setup Frontend & Playwright
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Install Playwright Browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps
+
+      - name: Run Playwright Tests
+        env:
+          CI: true
+          VITE_API_URL: "http://localhost:${{ secrets.PORT || '8080' }}"
+        run: |
+          cd frontend
+          npx playwright test
