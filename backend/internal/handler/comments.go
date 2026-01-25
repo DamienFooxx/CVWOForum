@@ -183,10 +183,27 @@ func (h *CommentHandler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get Comment to check status
+	comment, err := h.q.GetComment(r.Context(), commentID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Failed to get comment", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if comment.Status == "removed" {
+		http.Error(w, "Comment already deleted", http.StatusBadRequest)
+		return
+	}
+
 	// Delete comment (soft delete)
 	_, err = h.q.DeleteComment(r.Context(), database.DeleteCommentParams{
 		CommentID:   commentID,
 		CommentedBy: userID,
+		RemovedBy:   pgtype.Int8{Int64: userID, Valid: true},
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

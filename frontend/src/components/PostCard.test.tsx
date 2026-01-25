@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PostCard } from './PostCard';
 import type { Post } from '../types';
+import { BUTTONS } from '../constants/strings';
 
 describe('PostCard', () => {
   const mockPost: Post = {
@@ -20,6 +21,10 @@ describe('PostCard', () => {
     comment_count: 3
   };
 
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('renders post information correctly', () => {
     render(<PostCard post={mockPost} onClick={() => {}} />);
 
@@ -36,5 +41,30 @@ describe('PostCard', () => {
     fireEvent.click(screen.getByText('Test Post Title'));
     expect(handleClick).toHaveBeenCalledTimes(1);
     expect(handleClick).toHaveBeenCalledWith('101');
+  });
+
+  it('shows delete button only for owner', () => {
+    // Not owner
+    localStorage.setItem('user_id', '999');
+    const { unmount } = render(<PostCard post={mockPost} onClick={() => {}} />);
+    expect(screen.queryByTitle(BUTTONS.DELETE)).not.toBeInTheDocument();
+    unmount();
+
+    // Owner
+    localStorage.setItem('user_id', '2');
+    render(<PostCard post={mockPost} onClick={() => {}} />);
+    expect(screen.getByTitle(BUTTONS.DELETE)).toBeInTheDocument();
+  });
+
+  it('calls onDelete when delete button is clicked', () => {
+    localStorage.setItem('user_id', '2');
+    const handleDelete = vi.fn();
+    render(<PostCard post={mockPost} onClick={() => {}} onDelete={handleDelete} />);
+
+    const deleteBtn = screen.getByTitle(BUTTONS.DELETE);
+    fireEvent.click(deleteBtn);
+    
+    expect(handleDelete).toHaveBeenCalledTimes(1);
+    expect(handleDelete).toHaveBeenCalledWith('101');
   });
 });

@@ -5,6 +5,7 @@ import { BUTTONS, TOOLTIPS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
+global.alert = vi.fn();
 
 describe('PostDetailPage', () => {
   const mockPost = {
@@ -24,7 +25,8 @@ describe('PostDetailPage', () => {
       body: 'Top level comment',
       created_at: '2023-01-02T00:00:00Z',
       parent_id: null,
-      username: 'commenter_1'
+      username: 'commenter_1',
+      status: 'active'
     },
     {
       comment_id: 2,
@@ -33,7 +35,8 @@ describe('PostDetailPage', () => {
       body: 'Nested reply',
       created_at: '2023-01-03T00:00:00Z',
       parent_id: 1,
-      username: 'commenter_2'
+      username: 'commenter_2',
+      status: 'active'
     }
   ];
 
@@ -99,5 +102,45 @@ describe('PostDetailPage', () => {
     fireEvent.click(button);
     // Check for the modal header specifically
     expect(screen.getByRole('heading', { name: BUTTONS.POST_COMMENT })).toBeInTheDocument();
+  });
+
+  it('handles comment deletion flow', async () => {
+    localStorage.setItem('token', 'fake-token');
+    localStorage.setItem('user_id', '2'); // Owner of comment 1
+
+    fetchMock
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPost })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockComments });
+
+    render(<PostDetailPage postId="1" onBack={() => {}} />);
+
+    await waitFor(() => screen.getByText('Top level comment'));
+
+    // Find delete button for comment 1
+    const deleteBtns = screen.getAllByTitle(BUTTONS.DELETE);
+    fireEvent.click(deleteBtns[0]);
+
+    // Modal should appear
+    expect(screen.getByText('Delete Comment')).toBeInTheDocument();
+
+    // Mock delete success and refresh
+    fetchMock
+      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPost }) // Refresh post
+      .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh comments
+
+    // Confirm delete (button inside modal)
+    const buttons = screen.getAllByRole('button', { name: BUTTONS.DELETE });
+    const confirmBtn = buttons.find(btn => !btn.hasAttribute('title'));
+    if (!confirmBtn) throw new Error("Confirm button not found");
+
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/comments/1'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
   });
 });

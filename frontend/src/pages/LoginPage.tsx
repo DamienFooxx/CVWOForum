@@ -3,7 +3,7 @@ import { User, ArrowRight } from 'lucide-react';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 interface LoginPageProps {
-  onLoginSuccess: (token: string, username: string) => void;
+  onLoginSuccess: (token: string, username: string, userId: number) => void;
   onNavigateToSignup: () => void;
 }
 
@@ -30,7 +30,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
       }
 
       const data = await response.json();
-      onLoginSuccess(data.token, data.username);
+      onLoginSuccess(data.token, data.username, data.user_id);
       
     } catch (err) {
       if (err instanceof Error) {

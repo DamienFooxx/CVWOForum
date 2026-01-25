@@ -1,15 +1,24 @@
-import { MessageSquare, Clock, ArrowRight } from 'lucide-react';
+import { MessageSquare, Clock, ArrowRight, Trash2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { Topic } from '../types';
+import { BUTTONS } from '../constants/strings';
 
 interface TopicCardProps {
     topic: Topic;
     onClick: (id: string) => void;
+    onDelete?: (id: string) => void;
 }
 
-export function TopicCard({ topic, onClick }: TopicCardProps) {
+export function TopicCard({ topic, onClick, onDelete }: TopicCardProps) {
     // Destructure using new property names
-    const { topic_id, name, description, post_count, created_at } = topic;
+    const { topic_id, name, description, post_count, created_at, created_by } = topic;
+    const currentUserId = localStorage.getItem('user_id');
+    const isOwner = currentUserId && String(created_by) === currentUserId;
+
+    const handleDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onDelete?.(String(topic_id));
+    };
 
     return (
         <div
@@ -27,8 +36,20 @@ export function TopicCard({ topic, onClick }: TopicCardProps) {
                 <div className="absolute top-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-primary">
                     <ArrowRight className="h-5 w-5" />
                 </div>
+                
+                {/* Delete Button for Owner */}
+                {isOwner && (
+                    <button
+                        onClick={handleDelete}
+                        className="absolute top-6 right-12 p-1 text-muted-foreground hover:text-destructive transition-colors z-10"
+                        title={BUTTONS.DELETE}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
+                )}
+
                 <div>
-                    <h3 className="font-semibold text-3xl tracking-tight text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-3xl tracking-tight text-foreground group-hover:text-primary transition-colors pr-12">
                         {name}
                     </h3>
                     <p className="mt-2 text-lg text-muted-foreground leading-relaxed line-clamp-2">

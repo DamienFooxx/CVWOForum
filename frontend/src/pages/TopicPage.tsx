@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft, Plus, Search } from 'lucide-react';
 import { PostCard } from '../components/PostCard';
 import { CreatePostModal } from '../components/CreatePostModal';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import type { Topic, Post } from '../types';
 import { cn } from '../lib/utils';
 import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
@@ -18,6 +19,11 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isAuthenticated = !!localStorage.getItem('token');
 
@@ -65,6 +71,38 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
   const handleRefresh = () => {
     fetchData(searchQuery);
   }
+
+  const confirmDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeletePost = async () => {
+    if (!postToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+
+      handleRefresh();
+      setIsDeleteModalOpen(false);
+      setPostToDelete(null);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (loading && !topic) { // Only show full page loading if we don't have topic details yet
     return <div className="p-8 text-center animate-pulse">Loading topic...</div>;
@@ -155,6 +193,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
                       key={post.post_id}
                       post={post}
                       onClick={onPostClick}
+                      onDelete={confirmDeletePost}
                   />
               ))
           )}
@@ -165,6 +204,15 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
           onClose={() => setIsCreateModalOpen(false)}
           onPostCreated={handleRefresh}
           topicId={topicId}
+        />
+
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDeletePost}
+          title="Delete Post"
+          message="Are you sure you want to delete this post? This action cannot be undone."
+          isLoading={isDeleting}
         />
       </main>
   );

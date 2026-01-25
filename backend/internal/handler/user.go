@@ -107,9 +107,10 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Return HTTP response
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"token":    token,
 		"username": req.Username,
+		"user_id":  userId,
 	}); err != nil {
 		fmt.Printf("Error encoding JSON: %v\n", err)
 	}

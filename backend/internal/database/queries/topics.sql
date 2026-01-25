@@ -34,6 +34,9 @@ WHERE topic_id = $1;
 
 -- name: DeleteTopic :one
 UPDATE topics
-SET status = 'removed', removed_at = NOW(), removed_by = $2
+SET status = 'removed',
+    removed_at = NOW(),
+    removed_by = $2,
+    name = name || '_deleted_' || CAST(EXTRACT(EPOCH FROM NOW()) AS TEXT)
 WHERE topic_id = $1 AND created_by = $3
 RETURNING topic_id;

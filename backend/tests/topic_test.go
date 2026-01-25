@@ -39,12 +39,12 @@ func TestTopics(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
 
-		var response map[string]string
+		var response map[string]interface{}
 		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
 
-		return response["token"]
+		return response["token"].(string)
 	}
 
 	// Helper to create topic

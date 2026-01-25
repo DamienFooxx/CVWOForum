@@ -128,7 +128,7 @@ SELECT
     u.username
 FROM posts p
 JOIN users u ON p.created_by = u.user_id
-WHERE p.topic_id = $1
+WHERE p.topic_id = $1 AND p.status = 'active'
 ORDER BY p.created_at DESC
 `
 
