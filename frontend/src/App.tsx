@@ -1,35 +1,93 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { Navbar } from './components/NavigationBar.tsx';
+import { HomePage } from './pages/HomePage';
+import { TopicPage } from './pages/TopicPage';
+import { PostDetailPage } from './pages/PostDetailPage';
+import { LoginPage } from './pages/LoginPage';
 
-function App() {
-  const [count, setCount] = useState(0)
+type Page = 
+  | { type: 'home' }
+  | { type: 'topic'; topicId: string }
+  | { type: 'post'; postId: string; topicId: string }
+  | { type: 'login' }
+  | { type: 'signup' }; // Placeholder for now
+
+export default function App() {
+  const [currentPage, setCurrentPage] = useState<Page>({ type: 'home' });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check for existing token on load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLoginSuccess = (token: string, username: string) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('username', username);
+    setIsAuthenticated(true);
+    setCurrentPage({ type: 'home' }); // Redirect to home after login
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setIsAuthenticated(false);
+    setCurrentPage({ type: 'home' });
+  };
+
+  // Navigation Helpers
+  const navigateToHome = () => setCurrentPage({ type: 'home' });
+  const navigateToTopic = (topicId: string) => setCurrentPage({ type: 'topic', topicId });
+  const navigateToPost = (postId: string, topicId: string) => setCurrentPage({ type: 'post', postId, topicId });
+  const navigateToLogin = () => setCurrentPage({ type: 'login' });
+
+  const handleBackFromPost = () => {
+    if (currentPage.type === 'post') {
+      setCurrentPage({ type: 'topic', topicId: currentPage.topicId });
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="min-h-screen bg-background">
+      <Navbar
+        currentPage={currentPage.type === 'home' ? 'home' : 'topics'}
+        onNavigate={(page) => {
+          if (page === 'home') navigateToHome();
+        }}
+        // Pass auth state to Navbar so it can show "Login" or "Logout" button
+        isAuthenticated={isAuthenticated}
+        onLoginClick={navigateToLogin}
+        onLogoutClick={handleLogout}
+      />
 
-export default App
+      {currentPage.type === 'home' && (
+        <HomePage onTopicClick={navigateToTopic} />
+      )}
+
+      {currentPage.type === 'topic' && (
+        <TopicPage
+          topicId={currentPage.topicId}
+          onBack={navigateToHome}
+          onPostClick={(postId: string) => navigateToPost(postId, currentPage.topicId)}
+        />
+      )}
+
+      {currentPage.type === 'post' && (
+        <PostDetailPage
+          postId={currentPage.postId}
+          onBack={handleBackFromPost}
+        />
+      )}
+
+      {currentPage.type === 'login' && (
+        <LoginPage 
+          onLoginSuccess={handleLoginSuccess}
+          onNavigateToSignup={() => console.log("Navigate to signup")} // Placeholder
+        />
+      )}
+    </div>
+  );
+}

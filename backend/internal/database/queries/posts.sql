@@ -4,29 +4,65 @@ VALUES ($1, $2, $3, $4)
 RETURNING post_id, topic_id, created_by, title, body, created_at, status;
 
 -- name: ListPostsInTopic :many
-SELECT post_id, topic_id, created_by, title, body, created_at, status
-FROM posts
-WHERE topic_id = $1
-ORDER BY created_at DESC;
+SELECT
+    p.post_id,
+    p.topic_id,
+    p.created_by,
+    p.title,
+    p.body,
+    p.created_at,
+    p.status,
+    u.username
+FROM posts p
+JOIN users u ON p.created_by = u.user_id
+WHERE p.topic_id = $1
+ORDER BY p.created_at DESC;
 
 -- name: GetPost :one
-SELECT post_id, topic_id, created_by, title, body, created_at, status
-FROM posts
-WHERE post_id = $1;
+SELECT
+    p.post_id,
+    p.topic_id,
+    p.created_by,
+    p.title,
+    p.body,
+    p.created_at,
+    p.status,
+    u.username
+FROM posts p
+JOIN users u ON p.created_by = u.user_id
+WHERE p.post_id = $1;
 
 -- name: SearchPostsGlobal :many
-SELECT post_id, topic_id, created_by, title, body, created_at, status
-FROM posts
+SELECT
+    p.post_id,
+    p.topic_id,
+    p.created_by,
+    p.title,
+    p.body,
+    p.created_at,
+    p.status,
+    u.username
+FROM posts p
+JOIN users u ON p.created_by = u.user_id
 WHERE
-    (title ILIKE '%' || $1 || '%' OR body ILIKE '%' || $1 || '%')
-    AND status = 'active'
-ORDER BY created_at DESC;
+    (p.title ILIKE '%' || $1 || '%' OR p.body ILIKE '%' || $1 || '%')
+    AND p.status = 'active'
+ORDER BY p.created_at DESC;
 
 -- name: SearchPostsInTopic :many
-SELECT post_id, topic_id, created_by, title, body, created_at, status
-FROM posts
+SELECT
+    p.post_id,
+    p.topic_id,
+    p.created_by,
+    p.title,
+    p.body,
+    p.created_at,
+    p.status,
+    u.username
+FROM posts p
+JOIN users u ON p.created_by = u.user_id
 WHERE
-    topic_id = $1
-  AND (title ILIKE '%' || $2 || '%' OR body ILIKE '%' || $2 || '%')
-  AND status = 'active'
-ORDER BY created_at DESC;
+    p.topic_id = $1
+  AND (p.title ILIKE '%' || $2 || '%' OR p.body ILIKE '%' || $2 || '%')
+  AND p.status = 'active'
+ORDER BY p.created_at DESC;

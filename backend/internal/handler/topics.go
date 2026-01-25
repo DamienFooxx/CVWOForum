@@ -68,6 +68,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
+        PostCount   int64  `json:"post_count"`
 	}
 
 	// Construct Response
@@ -77,6 +78,7 @@ func (h *TopicHandler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
+        PostCount:   0,
 	}
 
 	// Return HTTP response
@@ -96,6 +98,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
+        PostCount   int64  `json:"post_count"`
 	}
 
 	response := []Response{}
@@ -113,6 +116,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
+                PostCount:   topic.PostCount.Int64,
 			})
 		}
 	} else {
@@ -129,6 +133,7 @@ func (h *TopicHandler) SearchTopics(w http.ResponseWriter, r *http.Request) {
 				Description: topic.Description,
 				CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 				Status:      topic.Status,
+                PostCount:   topic.PostCount.Int64,
 			})
 		}
 	}
@@ -167,6 +172,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
+        PostCount   int64  `json:"post_count"`
 	}
 
 	resp := Response{
@@ -175,6 +181,7 @@ func (h *TopicHandler) GetTopic(w http.ResponseWriter, r *http.Request) {
 		Description: topic.Description,
 		CreatedAt:   topic.CreatedAt.Time.Format(time.RFC3339),
 		Status:      topic.Status,
+        PostCount:   topic.PostCount.Int64,
 	}
 
 	// Send Response

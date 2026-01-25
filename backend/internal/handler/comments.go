@@ -135,6 +135,7 @@ func (h *CommentHandler) ListComments(w http.ResponseWriter, r *http.Request) {
 		Body        string `json:"body"`
 		CreatedAt   string `json:"created_at"`
 		Status      string `json:"status"`
+		Username    string `json:"username"`
 	}
 
 	response := []Response{}
@@ -151,6 +152,7 @@ func (h *CommentHandler) ListComments(w http.ResponseWriter, r *http.Request) {
 			Body:        c.Body,
 			CreatedAt:   c.CreatedAt.Time.Format(time.RFC3339),
 			Status:      c.Status,
+			Username:    c.Username,
 		})
 	}
 

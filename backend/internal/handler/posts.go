@@ -68,6 +68,11 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+    // Increment post count
+    if err := h.q.IncrementPostCount(r.Context(), topicID); err != nil {
+        fmt.Printf("Failed to increment post count for topic %d: %v\n", topicID, err)
+    }
+
 	// Create Response
 	type Response struct {
 		PostID    int64  `json:"post_id"`
@@ -112,6 +117,7 @@ func (h *PostHandler) SearchPostsGlobal(w http.ResponseWriter, r *http.Request) 
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 
 	response := []Response{}
@@ -125,6 +131,7 @@ func (h *PostHandler) SearchPostsGlobal(w http.ResponseWriter, r *http.Request) 
 			CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 			CreatedBy: post.CreatedBy,
 			Status:    post.Status,
+			Username:  post.Username,
 		})
 	}
 
@@ -153,6 +160,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 	response := []Response{}
 
@@ -175,6 +183,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
 				Status:    p.Status,
+				Username:  p.Username,
 			})
 		}
 	} else {
@@ -193,6 +202,7 @@ func (h *PostHandler) SearchPostsTopics(w http.ResponseWriter, r *http.Request) 
 				CreatedAt: p.CreatedAt.Time.Format(time.RFC3339),
 				CreatedBy: p.CreatedBy,
 				Status:    p.Status,
+				Username:  p.Username,
 			})
 		}
 	}
@@ -230,6 +240,7 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 		CreatedAt string `json:"created_at"`
 		CreatedBy int64  `json:"created_by"`
 		Status    string `json:"status"`
+		Username  string `json:"username"`
 	}
 
 	resp := Response{
@@ -240,6 +251,7 @@ func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: post.CreatedAt.Time.Format(time.RFC3339),
 		CreatedBy: post.CreatedBy,
 		Status:    post.Status,
+		Username:  post.Username,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
