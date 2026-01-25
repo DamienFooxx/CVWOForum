@@ -5,12 +5,6 @@ export interface APIErrorResponse {
     error?: string;
 }
 
-export interface NavigationItem {
-    id: PageType;
-    label: string;
-    icon: React.ElementType;
-}
-
 export interface Topic {
     topic_id: number;
     created_by: number;
@@ -53,7 +47,7 @@ export interface Comment {
     comment_id: number;
     post_id: number;
     commented_by: number;
-    parent_id: number | null; // Nullable for top-level comments
+    parent_id: number | null;
     body: string;
     created_at: string;
     updated_at?: string;

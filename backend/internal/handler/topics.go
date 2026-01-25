@@ -235,6 +235,6 @@ func (h *TopicHandler) DeleteTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Topic deleted successfully"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Topic deleted successfully"})
 }

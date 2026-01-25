@@ -81,6 +81,7 @@ describe('TopicPage', () => {
     (global.fetch as any).mockResolvedValue({
       ok: false,
       status: 404,
+      json: async () => ({ error: 'Not found' })
     });
 
     render(<TopicPage topicId="999" onBack={() => {}} onPostClick={() => {}} />);
@@ -126,7 +127,7 @@ describe('TopicPage', () => {
 
     // Mock delete success and refresh
     (global.fetch as any)
-      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // Delete response
       .mockResolvedValueOnce({ ok: true, json: async () => mockTopic }) // Refresh topic
       .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh posts
 

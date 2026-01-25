@@ -3,9 +3,10 @@ import {Plus, Search} from 'lucide-react';
 import { TopicCard } from '../components/TopicCard';
 import { CreateTopicModal } from '../components/CreateTopicModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import type { Topic, APIErrorResponse } from '../types';
+import type { Topic } from '../types';
 import { cn } from '../lib/utils';
 import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface HomePageProps {
   onTopicClick: (topicId: string) => void;
@@ -30,18 +31,11 @@ export function HomePage({ onTopicClick }: HomePageProps) {
   const fetchTopics = useCallback(async (query: string) => {
     try {
       setLoading(true);
-      const url = query 
-        ? `${import.meta.env.VITE_API_URL}/topics?q=${encodeURIComponent(query)}`
-        : `${import.meta.env.VITE_API_URL}/topics`;
+      const endpoint = query 
+        ? `/topics?q=${encodeURIComponent(query)}`
+        : `/topics`;
       
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null) as APIErrorResponse;
-        throw new Error(errorData?.message || errorData?.error || `Server error: ${response.status}`);
-      }
-
-      const data = await response.json() as Topic[];
+      const data = await api.get(endpoint) as Topic[];
       setTopics(data);
     } catch (err) {
       console.error(err);
@@ -81,16 +75,7 @@ export function HomePage({ onTopicClick }: HomePageProps) {
     
     setIsDeleting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics/${topicToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete topic');
-      }
+      await api.delete(`/topics/${topicToDelete}`, localStorage.getItem('token') || undefined);
 
       handleRefresh();
       setIsDeleteModalOpen(false);

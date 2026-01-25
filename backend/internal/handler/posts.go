@@ -314,6 +314,6 @@ func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Failed to decrement post count for topic %d: %v\n", post.TopicID, err)
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Post deleted successfully"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Post deleted successfully"})
 }
