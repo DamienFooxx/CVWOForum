@@ -1,12 +1,21 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { HomePage } from './HomePage';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
 
 const fetchMock = vi.fn();
 global.fetch = fetchMock;
-// Mock alert since we might use it in catch blocks, though we use modal now
 global.alert = vi.fn();
+
+// Helper to render with router context
+const renderWithRouter = (ui: React.ReactNode) => {
+  return render(
+    <MemoryRouter>
+      {ui}
+    </MemoryRouter>
+  );
+};
 
 describe('HomePage', () => {
   const mockTopics = [
@@ -39,7 +48,7 @@ describe('HomePage', () => {
       json: async () => mockTopics,
     });
 
-    render(<HomePage onTopicClick={() => {}} />);
+    renderWithRouter(<HomePage />);
 
     await waitFor(() => {
       expect(screen.getByText('Topic 1')).toBeInTheDocument();
@@ -54,7 +63,7 @@ describe('HomePage', () => {
       json: async () => [],
     });
 
-    render(<HomePage onTopicClick={() => {}} />);
+    renderWithRouter(<HomePage />);
 
     // Initial fetch
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
@@ -79,7 +88,7 @@ describe('HomePage', () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => [] });
 
     // Not logged in
-    const { unmount } = render(<HomePage onTopicClick={() => {}} />);
+    const { unmount } = renderWithRouter(<HomePage />);
     await waitFor(() => screen.getByText('Explore Topics'));
     
     const button = screen.getByRole('button', { name: BUTTONS.NEW_TOPIC });
@@ -89,7 +98,7 @@ describe('HomePage', () => {
 
     // Logged in
     localStorage.setItem('token', 'fake-token');
-    render(<HomePage onTopicClick={() => {}} />);
+    renderWithRouter(<HomePage />);
     await waitFor(() => screen.getByText('Explore Topics'));
 
     const enabledButton = screen.getByRole('button', { name: BUTTONS.NEW_TOPIC });
@@ -105,7 +114,7 @@ describe('HomePage', () => {
       json: async () => mockTopics,
     });
 
-    render(<HomePage onTopicClick={() => {}} />);
+    renderWithRouter(<HomePage />);
 
     await waitFor(() => screen.getByText('Topic 1'));
 
@@ -119,7 +128,7 @@ describe('HomePage', () => {
 
     // Mock delete success and refresh
     fetchMock
-      .mockResolvedValueOnce({ ok: true }) // Delete response
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) }) // Delete response
       .mockResolvedValueOnce({ ok: true, json: async () => [] }); // Refresh response
 
     // Confirm delete (the button inside the modal)

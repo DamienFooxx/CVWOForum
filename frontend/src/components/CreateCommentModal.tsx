@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface CreateCommentModalProps {
   isOpen: boolean;
@@ -30,22 +31,10 @@ export function CreateCommentModal({ isOpen, onClose, onCommentCreated, postId, 
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ 
-            body, 
-            parent_id: parentId // Send parent_id (can be null)
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || 'Failed to post comment');
-      }
+      await api.post(`/posts/${postId}/comments`, { 
+        body, 
+        parent_id: parentId // Send parent_id (can be null)
+      }, token);
 
       // Success!
       onCommentCreated();

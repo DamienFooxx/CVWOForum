@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Search } from 'lucide-react';
 import { PostCard } from '../components/PostCard';
 import { CreatePostModal } from '../components/CreatePostModal';
@@ -6,14 +7,15 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import type { Topic, Post } from '../types';
 import { cn } from '../lib/utils';
 import { PLACEHOLDERS, BUTTONS, TOOLTIPS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface TopicPageProps {
-  topicId: string;
   onBack: () => void;
   onPostClick: (postId: string) => void;
 }
 
-export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
+export function TopicPage({ onBack, onPostClick }: TopicPageProps) {
+  const { topicId } = useParams<{ topicId: string }>();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,28 +30,22 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
   const isAuthenticated = !!localStorage.getItem('token');
 
   const fetchData = useCallback(async (query: string = '') => {
+    if (!topicId) return;
     try {
       setLoading(true);
       
       // Construct URL for posts with optional search query
-      const postsUrl = query 
-        ? `${import.meta.env.VITE_API_URL}/topics/${topicId}/posts?q=${encodeURIComponent(query)}`
-        : `${import.meta.env.VITE_API_URL}/topics/${topicId}/posts`;
+      const postsEndpoint = query 
+        ? `/topics/${topicId}/posts?q=${encodeURIComponent(query)}`
+        : `/topics/${topicId}/posts`;
 
-      const [topicRes, postsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_URL}/topics/${topicId}`),
-        fetch(postsUrl)
+      const [topicData, postsData] = await Promise.all([
+        api.get(`/topics/${topicId}`),
+        api.get(postsEndpoint)
       ]);
 
-      if (topicRes.ok) {
-        const topicData = await topicRes.json() as Topic;
-        setTopic(topicData);
-      }
-
-      if (postsRes.ok) {
-        const postsData = await postsRes.json() as Post[];
-        setPosts(postsData);
-      }
+      setTopic(topicData as Topic);
+      setPosts(postsData as Post[]);
     } catch (error) {
       console.error("Failed to fetch topic data", error);
     } finally {
@@ -82,16 +78,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete post');
-      }
+      await api.delete(`/posts/${postToDelete}`, localStorage.getItem('token') || undefined);
 
       handleRefresh();
       setIsDeleteModalOpen(false);
@@ -203,7 +190,7 @@ export function TopicPage({ topicId, onBack, onPostClick }: TopicPageProps) {
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onPostCreated={handleRefresh}
-          topicId={topicId}
+          topicId={topicId || ''}
         />
 
         <ConfirmationModal

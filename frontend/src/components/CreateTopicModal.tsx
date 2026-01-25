@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { PLACEHOLDERS, BUTTONS } from '../constants/strings';
+import { api } from '../lib/api';
 
 interface CreateTopicModalProps {
   isOpen: boolean;
@@ -29,27 +30,7 @@ export function CreateTopicModal({ isOpen, onClose, onTopicCreated }: CreateTopi
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/topics`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Send the token!
-        },
-        body: JSON.stringify({ name, description }),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        let errorMessage = 'Failed to create topic';
-        try {
-            const data = JSON.parse(text);
-            errorMessage = data?.message || data?.error || errorMessage;
-        } catch (e) {
-             // If JSON parse failed, use text if available
-             errorMessage = text || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
+      await api.post('/topics', { name, description }, token);
 
       // Success
       onTopicCreated();

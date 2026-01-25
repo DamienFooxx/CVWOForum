@@ -1,20 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/NavigationBar.tsx';
 import { HomePage } from './pages/HomePage';
 import { TopicPage } from './pages/TopicPage';
 import { PostDetailPage } from './pages/PostDetailPage';
 import { LoginPage } from './pages/LoginPage';
 
-type Page = 
-  | { type: 'home' }
-  | { type: 'topic'; topicId: string }
-  | { type: 'post'; postId: string; topicId: string }
-  | { type: 'login' }
-  | { type: 'signup' }; // Placeholder for now
-
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>({ type: 'home' });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Check for existing token on load
   useEffect(() => {
@@ -29,7 +24,7 @@ export default function App() {
     localStorage.setItem('username', username);
     localStorage.setItem('user_id', String(userId));
     setIsAuthenticated(true);
-    setCurrentPage({ type: 'home' }); // Redirect to home after login
+    navigate('/'); // Redirect to home after login
   };
 
   const handleLogout = () => {
@@ -37,59 +32,60 @@ export default function App() {
     localStorage.removeItem('username');
     localStorage.removeItem('user_id');
     setIsAuthenticated(false);
-    setCurrentPage({ type: 'home' });
+    navigate('/');
   };
 
-  // Navigation Helpers
-  const navigateToHome = () => setCurrentPage({ type: 'home' });
-  const navigateToTopic = (topicId: string) => setCurrentPage({ type: 'topic', topicId });
-  const navigateToPost = (postId: string, topicId: string) => setCurrentPage({ type: 'post', postId, topicId });
-  const navigateToLogin = () => setCurrentPage({ type: 'login' });
-
-  const handleBackFromPost = () => {
-    if (currentPage.type === 'post') {
-      setCurrentPage({ type: 'topic', topicId: currentPage.topicId });
-    }
-  };
+  // Determine current page type for Navbar
+  const currentPageType = location.pathname === '/' ? 'home' : 'topics';
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar
-        currentPage={currentPage.type === 'home' ? 'home' : 'topics'}
+        currentPage={currentPageType}
         onNavigate={(page) => {
-          if (page === 'home') navigateToHome();
+          if (page === 'home') navigate('/');
         }}
-        // Pass auth state to Navbar so it can show "Login" or "Logout" button
         isAuthenticated={isAuthenticated}
-        onLoginClick={navigateToLogin}
+        onLoginClick={() => navigate('/login')}
         onLogoutClick={handleLogout}
       />
 
-      {currentPage.type === 'home' && (
-        <HomePage onTopicClick={navigateToTopic} />
-      )}
-
-      {currentPage.type === 'topic' && (
-        <TopicPage
-          topicId={currentPage.topicId}
-          onBack={navigateToHome}
-          onPostClick={(postId: string) => navigateToPost(postId, currentPage.topicId)}
+      <Routes>
+        <Route path="/" element={<HomePage onTopicClick={(topicId) => navigate(`/topics/${topicId}`)} />} />
+        <Route 
+          path="/topics/:topicId" 
+          element={
+            <TopicPage 
+              onBack={() => navigate('/')} 
+              onPostClick={(postId) => {
+                const currentTopicId = location.pathname.split('/')[2];
+                navigate(`/topics/${currentTopicId}/posts/${postId}`);
+              }} 
+            />
+          } 
         />
-      )}
-
-      {currentPage.type === 'post' && (
-        <PostDetailPage
-          postId={currentPage.postId}
-          onBack={handleBackFromPost}
+        <Route 
+          path="/topics/:topicId/posts/:postId" 
+          element={
+            <PostDetailPage 
+              onBack={() => {
+                 // Go back to the topic page
+                 const currentTopicId = location.pathname.split('/')[2];
+                 navigate(`/topics/${currentTopicId}`);
+              }} 
+            />
+          } 
         />
-      )}
-
-      {currentPage.type === 'login' && (
-        <LoginPage 
-          onLoginSuccess={handleLoginSuccess}
-          onNavigateToSignup={() => console.log("Navigate to signup")} // Placeholder
+        <Route 
+          path="/login" 
+          element={
+            <LoginPage 
+              onLoginSuccess={handleLoginSuccess}
+              onNavigateToSignup={() => console.log("Navigate to signup")} 
+            />
+          } 
         />
-      )}
+      </Routes>
     </div>
   );
 }
