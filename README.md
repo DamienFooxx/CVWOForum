@@ -32,7 +32,15 @@ This project is a full-stack, discussion-based forum platform. While the origina
 * **Threaded Comments**: Nested replies allowing for structured discussion.
 * **Fuzzy Search**: Implemented for both topics and posts using SQL `ILIKE` queries.
 * **Authentication**: Username-based login with account auto-creation and JWT persistence.
-* **Soft Deletion**: All major entities (topics, posts, comments) utilize a soft-delete mechanism (`status = 'removed'`) to maintain data integrity.
+* **Soft Deletion**: All major entities (topics, posts, comments) utilize a soft-delete mechanism (`status = 'removed'`) to maintain data integrity and only owners can delete
+
+## Homepage
+<img width="2560" height="1319" alt="image" src="https://github.com/user-attachments/assets/45ae7825-5bba-463f-a8d1-13f4df86f59b" />
+## Topicpage
+<img width="2560" height="1320" alt="image" src="https://github.com/user-attachments/assets/e6f0ec3c-43fb-47ae-b7ac-1d0641cbed6e" />
+## Postpage
+<img width="2560" height="1321" alt="image" src="https://github.com/user-attachments/assets/8f2d0eba-8204-4901-8d06-53e59e1bd1af" />
+
 
 ## Testing Locally
 Setup a .env file in frontend
