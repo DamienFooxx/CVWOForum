@@ -149,4 +149,82 @@ func TestTopics(t *testing.T) {
 		assert.Equal(t, float64(topicID), resp["topic_id"])
 		assert.Equal(t, "testTopic3", resp["name"])
 	})
+
+	// Test Case 6: Delete Topic
+	t.Run("Delete Topic", func(t *testing.T) {
+		// Create a topic to delete
+		wcreate := createTopic(token, "deleteMe", "deleteDescription")
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		topicID := int64(createResp["topic_id"].(float64))
+
+		// Delete it
+		url := fmt.Sprintf("/topics/%d", topicID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Logf("Delete failed with status %d. Body: %s", w.Code, w.Body.String())
+		}
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Verify it's deleted (GetTopic should show status removed)
+		reqGet := httptest.NewRequest("GET", url, nil)
+		wGet := httptest.NewRecorder()
+		r.ServeHTTP(wGet, reqGet)
+
+		assert.Equal(t, http.StatusOK, wGet.Code)
+		var getResp map[string]interface{}
+		err = json.Unmarshal(wGet.Body.Bytes(), &getResp)
+		assert.NoError(t, err)
+		assert.Equal(t, "removed", getResp["status"])
+
+		// Verify it's not in ListTopics
+		reqList := httptest.NewRequest("GET", "/topics", nil)
+		wList := httptest.NewRecorder()
+		r.ServeHTTP(wList, reqList)
+
+		var listResp []map[string]interface{}
+		err = json.Unmarshal(wList.Body.Bytes(), &listResp)
+		assert.NoError(t, err)
+
+		for _, topic := range listResp {
+			assert.NotEqual(t, float64(topicID), topic["topic_id"])
+		}
+	})
+
+	// Test Case 7: Delete Topic by Non-Creator
+	t.Run("Delete Topic Non-Creator", func(t *testing.T) {
+		// Create a topic by user1
+		wcreate := createTopic(token, "user1Topic", "desc")
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		topicID := int64(createResp["topic_id"].(float64))
+
+		// Create user2
+		payload := []byte(`{
+			"username": "user2",
+			"password": "password",
+			"bio": "bio"
+		}`)
+		reqReg, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+		reqReg.Header.Set("Content-Type", "application/json")
+		wReg := httptest.NewRecorder()
+		r.ServeHTTP(wReg, reqReg)
+
+		token2 := getToken("user2")
+
+		// Try to delete user1's topic with user2's token
+		url := fmt.Sprintf("/topics/%d", topicID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token2)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 }

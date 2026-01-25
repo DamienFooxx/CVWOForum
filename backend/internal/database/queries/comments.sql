@@ -29,3 +29,9 @@ UPDATE comments
 SET body = $2, edited_at = NOW()
 WHERE comment_id = $1 AND commented_by = $3
     RETURNING comment_id, body, edited_at;
+
+-- name: DeleteComment :one
+UPDATE comments
+SET status = 'removed', removed_at = NOW(), removed_by = $2
+WHERE comment_id = $1 AND commented_by = $3
+RETURNING comment_id;

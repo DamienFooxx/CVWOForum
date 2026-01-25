@@ -141,4 +141,76 @@ func TestComments(t *testing.T) {
 		assert.Equal(t, "testComment", resp[0]["body"])
 		assert.Equal(t, "Reply to First", resp[1]["body"])
 	})
+
+	// Test Case 4: Delete Comment
+	t.Run("Delete Comment", func(t *testing.T) {
+		// Create a comment to delete
+		wcreate := createComment(token, postId, "deleteMe", nil)
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		commentID := int64(createResp["comment_id"].(float64))
+
+		// Delete it
+		url := fmt.Sprintf("/comments/%d", commentID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Verify it's deleted (ListComments should show status removed)
+		urlList := fmt.Sprintf("/posts/%d/comments", postId)
+		reqList := httptest.NewRequest("GET", urlList, nil)
+		wList := httptest.NewRecorder()
+		r.ServeHTTP(wList, reqList)
+
+		var listResp []map[string]interface{}
+		err = json.Unmarshal(wList.Body.Bytes(), &listResp)
+		assert.NoError(t, err)
+
+		// Find the deleted comment
+		found := false
+		for _, c := range listResp {
+			if int64(c["comment_id"].(float64)) == commentID {
+				assert.Equal(t, "removed", c["status"])
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "Deleted comment should still be listed but with status removed")
+	})
+
+	// Test Case 5: Delete Comment Non-Creator
+	t.Run("Delete Comment Non-Creator", func(t *testing.T) {
+		// Create a comment by user1
+		wcreate := createComment(token, postId, "user1Comment", nil)
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		commentID := int64(createResp["comment_id"].(float64))
+
+		// Register user2
+		payload := []byte(`{
+			"username": "user2_comment",
+			"password": "password",
+			"bio": "bio"
+		}`)
+		reqReg, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+		reqReg.Header.Set("Content-Type", "application/json")
+		wReg := httptest.NewRecorder()
+		r.ServeHTTP(wReg, reqReg)
+
+		token2 := getToken("user2_comment")
+
+		// Try to delete user1's comment with user2's token
+		url := fmt.Sprintf("/comments/%d", commentID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token2)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 }

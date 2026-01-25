@@ -47,7 +47,7 @@ type Topic struct {
 	RemovedAt     pgtype.Timestamptz
 	RemovedBy     pgtype.Int8
 	RemovalReason pgtype.Text
-	PostCount     pgtype.Int8
+	PostCount     int64
 }
 
 type User struct {

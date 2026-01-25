@@ -134,4 +134,76 @@ func TestPosts(t *testing.T) {
 		assert.Equal(t, "testPost2", resp[0]["title"])
 		assert.Equal(t, "testPost", resp[1]["title"])
 	})
+
+	// Test Case 5: Delete Post
+	t.Run("Delete Post", func(t *testing.T) {
+		// Create a post to delete
+		wcreate := createPost(token, topicID, "deleteMe", "deleteBody")
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		postID := int64(createResp["post_id"].(float64))
+
+		// Delete it
+		url := fmt.Sprintf("/posts/%d", postID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		// Verify it's deleted (GetPost should show status removed)
+		reqGet := httptest.NewRequest("GET", url, nil)
+		wGet := httptest.NewRecorder()
+		r.ServeHTTP(wGet, reqGet)
+
+		assert.Equal(t, http.StatusOK, wGet.Code)
+		var getResp map[string]interface{}
+		err = json.Unmarshal(wGet.Body.Bytes(), &getResp)
+		assert.NoError(t, err)
+		assert.Equal(t, "removed", getResp["status"])
+
+		// Verify post count decremented
+		urlTopic := fmt.Sprintf("/topics/%d", topicID)
+		reqTopic := httptest.NewRequest("GET", urlTopic, nil)
+		wTopic := httptest.NewRecorder()
+		r.ServeHTTP(wTopic, reqTopic)
+		var topicResp map[string]interface{}
+		json.Unmarshal(wTopic.Body.Bytes(), &topicResp)
+		// Count should be 2.
+		assert.Equal(t, float64(2), topicResp["post_count"])
+	})
+
+	// Test Case 6: Delete Post Non-Creator
+	t.Run("Delete Post Non-Creator", func(t *testing.T) {
+		// Create a post by user1
+		wcreate := createPost(token, topicID, "user1Post", "body")
+		var createResp map[string]interface{}
+		err := json.Unmarshal(wcreate.Body.Bytes(), &createResp)
+		assert.NoError(t, err)
+		postID := int64(createResp["post_id"].(float64))
+
+		// Register user2
+		payload := []byte(`{
+			"username": "user2_post",
+			"password": "password",
+			"bio": "bio"
+		}`)
+		reqReg, _ := http.NewRequest("POST", "/users", bytes.NewBuffer(payload))
+		reqReg.Header.Set("Content-Type", "application/json")
+		wReg := httptest.NewRecorder()
+		r.ServeHTTP(wReg, reqReg)
+
+		token2 := getToken("user2_post")
+
+		// Try to delete user1's post with user2's token
+		url := fmt.Sprintf("/posts/%d", postID)
+		req := httptest.NewRequest("DELETE", url, nil)
+		req.Header.Set("Authorization", "Bearer "+token2)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 }
